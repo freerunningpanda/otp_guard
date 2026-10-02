@@ -22,6 +22,7 @@ Errors are returned as `PlatformException` with these codes and mapped to typed 
 
 | Code | Meaning |
 |---|---|
+| `INVALID_ARGUMENT` | A required argument is missing, for example `enabled` in `setScreenProtection`. The call changes nothing, so protection that is on stays on |
 | `NO_ACTIVITY` | Android: the plugin is not attached to an activity, so there is no window to protect |
 | `UNAVAILABLE` | The platform API is missing on this OS version |
 
