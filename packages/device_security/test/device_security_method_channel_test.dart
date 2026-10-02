@@ -1,17 +1,20 @@
+import 'package:device_security/device_security_method_channel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:device_security/device_security_method_channel.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  MethodChannelDeviceSecurity platform = MethodChannelDeviceSecurity();
-  const MethodChannel channel = MethodChannel('device_security');
+  final platform = MethodChannelDeviceSecurity();
+  final channel = platform.methodChannel;
+  MethodCall? receivedCall;
 
   setUp(() {
+    receivedCall = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          return '42';
+        .setMockMethodCallHandler(channel, (methodCall) async {
+          receivedCall = methodCall;
+          return null;
         });
   });
 
@@ -20,7 +23,10 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
-  test('getPlatformVersion', () async {
-    expect(await platform.getPlatformVersion(), '42');
+  test('setScreenProtection', () async {
+    await platform.setScreenProtection(enabled: true);
+
+    expect(receivedCall?.method, 'setScreenProtection');
+    expect(receivedCall?.arguments, <String, dynamic>{'enabled': true});
   });
 }

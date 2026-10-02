@@ -1,7 +1,7 @@
+import 'package:device_security/device_security_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'device_security_method_channel.dart';
-
+/// The interface that implementations of device_security must implement.
 abstract class DeviceSecurityPlatform extends PlatformInterface {
   /// Constructs a DeviceSecurityPlatform.
   DeviceSecurityPlatform() : super(token: _token);
@@ -23,7 +23,6 @@ abstract class DeviceSecurityPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
-  }
+  /// Sets the screen protection flag on the device.
+  Future<void> setScreenProtection({required bool enabled});
 }

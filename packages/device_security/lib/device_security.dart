@@ -1,8 +1,9 @@
-
-import 'device_security_platform_interface.dart';
+import 'package:device_security/device_security_platform_interface.dart';
 
 class DeviceSecurity {
-  Future<String?> getPlatformVersion() {
-    return DeviceSecurityPlatform.instance.getPlatformVersion();
+  Future<void> setScreenProtection({required bool enabled}) {
+    return DeviceSecurityPlatform.instance.setScreenProtection(
+      enabled: enabled,
+    );
   }
 }
