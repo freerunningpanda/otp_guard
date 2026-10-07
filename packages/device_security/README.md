@@ -42,6 +42,7 @@ These come from the platforms and are part of the design, not bugs:
 - **iOS cannot block a screenshot.** It can only report that one was taken, after the fact. The app reacts by hiding codes and logging the event.
 - **Android can block, but detects only on new versions.** `FLAG_SECURE` works on every supported version. Screenshot detection needs Android 14, screen-recording detection needs Android 15. On older versions the stream stays silent, and protection relies on `FLAG_SECURE`.
 - **With `FLAG_SECURE` enabled, Android produces no screenshot events**, because the screenshot does not happen.
+- **The iOS blur appears on every loss of focus, not only in the task switcher.** `willResignActive` also fires for Control Center, an incoming call and system prompts such as Face ID, so the screen blurs under them too. For an authenticator this is the wanted behavior.
 
 ## Planned next
 

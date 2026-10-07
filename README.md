@@ -35,7 +35,7 @@ The native work lives in [`packages/device_security`](packages/device_security/R
 ## Roadmap
 
 - [x] Project and plugin scaffold, strict linting
-- [ ] `device_security`: screen protection over `MethodChannel` (Kotlin, Swift)
+- [x] `device_security`: screen protection over `MethodChannel` (Kotlin, Swift)
 - [ ] `device_security`: screenshot and screen-recording events over `EventChannel`
 - [ ] `device_security`: hardware-backed key and signing (Pigeon)
 - [ ] Channel tests with a mocked platform side
