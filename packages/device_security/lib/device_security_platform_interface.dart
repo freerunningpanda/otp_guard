@@ -1,4 +1,5 @@
 import 'package:device_security/device_security_method_channel.dart';
+import 'package:device_security/security_event.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 /// The interface that implementations of device_security must implement.
@@ -25,4 +26,10 @@ abstract class DeviceSecurityPlatform extends PlatformInterface {
 
   /// Sets the screen protection flag on the device.
   Future<void> setScreenProtection({required bool enabled});
+
+  /// The security events the platform reports, such as a screenshot.
+  ///
+  /// A broadcast stream: the platform starts watching for events when the
+  /// first listener subscribes and stops when the last one cancels.
+  Stream<SecurityEvent> get securityEvents;
 }

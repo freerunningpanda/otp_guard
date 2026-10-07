@@ -28,7 +28,7 @@ Errors are returned as `PlatformException` with these codes and mapped to typed 
 
 ## Events
 
-Each event is a map: `{"type": String, "timestamp": int, ...}`.
+Each event is a map: `{"type": String, "timestamp": int, ...}`. `timestamp` is milliseconds since the Unix epoch. The Dart side skips an event with a `type` it does not know, so the native side can add new types without breaking older Dart code. A known `type` with a missing or mistyped field is a contract violation and raises a `FormatException`.
 
 | Event | Payload | Android | iOS |
 |---|---|---|---|

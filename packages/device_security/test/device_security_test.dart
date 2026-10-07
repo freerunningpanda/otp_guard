@@ -8,11 +8,15 @@ class MockDeviceSecurityPlatform
     with MockPlatformInterfaceMixin
     implements DeviceSecurityPlatform {
   bool? receivedEnabled;
+  Stream<SecurityEvent> events = const Stream.empty();
 
   @override
   Future<void> setScreenProtection({required bool enabled}) async {
     receivedEnabled = enabled;
   }
+
+  @override
+  Stream<SecurityEvent> get securityEvents => events;
 }
 
 void main() {
@@ -40,5 +44,15 @@ void main() {
     await deviceSecurityPlugin.setScreenProtection(enabled: false);
 
     expect(fakePlatform.receivedEnabled, false);
+  });
+
+  test('securityEvents forwards the platform stream', () async {
+    final deviceSecurityPlugin = DeviceSecurity();
+    final fakePlatform = MockDeviceSecurityPlatform();
+    final event = ScreenshotTaken(timestamp: DateTime.utc(2026));
+    fakePlatform.events = Stream.value(event);
+    DeviceSecurityPlatform.instance = fakePlatform;
+
+    expect(deviceSecurityPlugin.securityEvents, emits(event));
   });
 }
