@@ -35,6 +35,8 @@ Each event is a map: `{"type": String, "timestamp": int, ...}`. `timestamp` is m
 | `screenshotTaken` | none | `Activity.ScreenCaptureCallback`, Android 14+ | `UIApplication.userDidTakeScreenshotNotification` |
 | `screenRecordingChanged` | `isRecording: bool` | `WindowManager.addScreenRecordingCallback`, Android 15+ | `UIScreen.capturedDidChangeNotification` |
 
+The platform watches for these events only while Dart listens: it subscribes in `onListen` and unsubscribes in `onCancel`. A recording can already be running when Dart subscribes, and no event announces it, so the platform then sends `screenRecordingChanged` with `isRecording: true` right away. Otherwise the app would show codes to someone who started recording before the screen opened.
+
 ## Platform limitations
 
 These come from the platforms and are part of the design, not bugs:
@@ -42,6 +44,7 @@ These come from the platforms and are part of the design, not bugs:
 - **iOS cannot block a screenshot.** It can only report that one was taken, after the fact. The app reacts by hiding codes and logging the event.
 - **Android can block, but detects only on new versions.** `FLAG_SECURE` works on every supported version. Screenshot detection needs Android 14, screen-recording detection needs Android 15. On older versions the stream stays silent, and protection relies on `FLAG_SECURE`.
 - **With `FLAG_SECURE` enabled, Android produces no screenshot events**, because the screenshot does not happen.
+- **On iOS, `screenRecordingChanged` means any screen capture, not only recording.** `isRecording` is `UIScreen.isCaptured`, which is also true while the screen is mirrored with AirPlay or to an external display. For an authenticator this is the wanted behavior: the codes leave the device in all these cases.
 - **The iOS blur appears on every loss of focus, not only in the task switcher.** `willResignActive` also fires for Control Center, an incoming call and system prompts such as Face ID, so the screen blurs under them too. For an authenticator this is the wanted behavior.
 
 ## Planned next
