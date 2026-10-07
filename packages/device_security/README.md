@@ -35,7 +35,7 @@ Each event is a map: `{"type": String, "timestamp": int, ...}`. `timestamp` is m
 | `screenshotTaken` | none | `Activity.ScreenCaptureCallback`, Android 14+ | `UIApplication.userDidTakeScreenshotNotification` |
 | `screenRecordingChanged` | `isRecording: bool` | `WindowManager.addScreenRecordingCallback`, Android 15+ | `UIScreen.capturedDidChangeNotification` |
 
-The platform watches for these events only while Dart listens: it subscribes in `onListen` and unsubscribes in `onCancel`. A recording can already be running when Dart subscribes, and no event announces it, so the platform then sends `screenRecordingChanged` with `isRecording: true` right away. Otherwise the app would show codes to someone who started recording before the screen opened.
+The platform watches for these events only while Dart listens: it subscribes in `onListen` and unsubscribes in `onCancel`. A recording can already be running when Dart subscribes, and no event announces it, so the platform then sends `screenRecordingChanged` with `isRecording: true` right away. Otherwise the app would show codes to someone who started recording before the screen opened. When no recording is running nothing is sent, so on the Dart side the screen counts as not recorded until a `screenRecordingChanged` with `isRecording: true` arrives.
 
 On Android both callbacks belong to the activity, so they are registered only while Dart listens and an activity is attached. The plugin declares the permissions `DETECT_SCREEN_CAPTURE` and `DETECT_SCREEN_RECORDING`. They are normal permissions: they merge into the manifest of the app and the user confirms nothing.
 

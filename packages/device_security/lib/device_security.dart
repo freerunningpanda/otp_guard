@@ -19,6 +19,10 @@ class DeviceSecurity {
   ///
   /// A broadcast stream: the platform starts watching for events when the
   /// first listener subscribes and stops when the last one cancels.
+  ///
+  /// The stream never announces "no recording": a recording that is not running
+  /// at subscription time sends nothing. Until a [ScreenRecordingChanged] with
+  /// `isRecording` true arrives, treat the screen as not recorded.
   Stream<SecurityEvent> get securityEvents =>
       DeviceSecurityPlatform.instance.securityEvents;
 }
