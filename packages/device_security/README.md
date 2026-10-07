@@ -15,7 +15,7 @@ Native screen protection and security events for Flutter apps that show sensitiv
 
 | Method | Arguments | Returns | Android | iOS |
 |---|---|---|---|---|
-| `setScreenProtection` | `enabled: bool` | `void` | `FLAG_SECURE` on the activity window: blocks screenshots, screen recording and the task-switcher preview | Covers the window with a blur while the app is inactive, so the task switcher shows no content |
+| `setScreenProtection` | `enabled: bool` | `void` | `FLAG_SECURE` on the activity window: blocks screenshots, screen recording and the task-switcher preview | Covers every window with a blur while the app is inactive or the screen is captured, so the task switcher and a recording show no content |
 | `isDeviceSecure` | none | `bool` | `KeyguardManager.isDeviceSecure` | `LAContext.canEvaluatePolicy(.deviceOwnerAuthentication)` |
 
 Errors are returned as `PlatformException` with these codes and mapped to typed failures on the Dart side:
@@ -35,7 +35,7 @@ Each event is a map: `{"type": String, "timestamp": int, ...}`. `timestamp` is m
 | `screenshotTaken` | none | `Activity.ScreenCaptureCallback`, Android 14+ | `UIApplication.userDidTakeScreenshotNotification` |
 | `screenRecordingChanged` | `isRecording: bool` | `WindowManager.addScreenRecordingCallback`, Android 15+ | `UIScreen.capturedDidChangeNotification` |
 
-The platform watches for these events only while Dart listens: it subscribes in `onListen` and unsubscribes in `onCancel`. A recording can already be running when Dart subscribes, and no event announces it, so the platform then sends `screenRecordingChanged` with `isRecording: true` right away. Otherwise the app would show codes to someone who started recording before the screen opened. When no recording is running nothing is sent, so on the Dart side the screen counts as not recorded until a `screenRecordingChanged` with `isRecording: true` arrives.
+The platform watches for these events only while Dart listens: it subscribes in `onListen` and unsubscribes in `onCancel`. The one exception is the iOS screen-capture notification: the blur needs it, so it is observed for the whole life of the plugin, but no event is sent without a listener. A recording can already be running when Dart subscribes, and no event announces it, so the platform then sends `screenRecordingChanged` with `isRecording: true` right away. Otherwise the app would show codes to someone who started recording before the screen opened. When no recording is running nothing is sent, so on the Dart side the screen counts as not recorded until a `screenRecordingChanged` with `isRecording: true` arrives.
 
 On Android both callbacks belong to the activity, so they are registered only while Dart listens and an activity is attached. The plugin declares the permissions `DETECT_SCREEN_CAPTURE` and `DETECT_SCREEN_RECORDING`. They are normal permissions: they merge into the manifest of the app and the user confirms nothing.
 
@@ -44,6 +44,7 @@ On Android both callbacks belong to the activity, so they are registered only wh
 These come from the platforms and are part of the design, not bugs:
 
 - **iOS cannot block a screenshot.** It can only report that one was taken, after the fact. The app reacts by hiding codes and logging the event.
+- **iOS cannot block a screen recording, but it hides the content.** While protection is on and the screen is captured, every window is covered with a blur, so the recording shows a blur instead of codes. The blur stays until the capture ends. The system reports a capture a moment after it starts, so the first frames can still show content, and a window that opens during the capture is not covered.
 - **Android can block, but detects only on new versions.** `FLAG_SECURE` works on every supported version. Screenshot detection needs Android 14, screen-recording detection needs Android 15. On older versions the stream stays silent, and protection relies on `FLAG_SECURE`.
 - **With `FLAG_SECURE` enabled, Android produces no screenshot events**, because the screenshot does not happen.
 - **On iOS, `screenRecordingChanged` means any screen capture, not only recording.** `isRecording` is `UIScreen.isCaptured`, which is also true while the screen is mirrored with AirPlay or to an external display. For an authenticator this is the wanted behavior: the codes leave the device in all these cases.

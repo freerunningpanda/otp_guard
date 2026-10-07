@@ -7,8 +7,11 @@ public class DeviceSecurityPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
   // Set while Dart listens to the events channel, nil otherwise.
   private var eventSink: FlutterEventSink?
 
-  // The blurs laid over the windows while the app is inactive, one per window: the task switcher
-  // snapshot of a scene includes all of its windows. Empty while no blur is shown.
+  // True between willResignActive and didBecomeActive.
+  private var isInactive = false
+
+  // The blurs laid over the windows, one per window: the task switcher snapshot of a scene
+  // includes all of its windows. Empty while no blur is shown.
   private var blurViews: [UIVisualEffectView] = []
 
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -42,6 +45,14 @@ public class DeviceSecurityPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
       name: UIApplication.didBecomeActiveNotification,
       object: nil
     )
+    // For the whole life of the plugin, not only while Dart listens: the blur follows the screen
+    // capture. Events still go out only while a Dart listener exists.
+    center.addObserver(
+      self,
+      selector: #selector(screenCaptureDidChange),
+      name: UIScreen.capturedDidChangeNotification,
+      object: nil
+    )
   }
 
   deinit {
@@ -51,13 +62,24 @@ public class DeviceSecurityPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
   // Fires for every loss of focus, not only for the task switcher: Control Center, an incoming
   // call and system prompts such as Face ID blur the screen too.
   @objc private func applicationWillResignActive() {
-    if isProtectionEnabled {
-      showBlur()
-    }
+    isInactive = true
+    updateBlur()
   }
 
   @objc private func applicationDidBecomeActive() {
-    hideBlur()
+    isInactive = false
+    updateBlur()
+  }
+
+  // The blur is on while protection is on and the app is inactive (the task switcher takes its
+  // snapshot then) or the screen is captured by a recording, AirPlay or mirroring: a capture
+  // then shows a blur instead of the content.
+  private func updateBlur() {
+    if isProtectionEnabled && (isInactive || screen()?.isCaptured == true) {
+      showBlur()
+    } else {
+      hideBlur()
+    }
   }
 
   private func showBlur() {
@@ -102,12 +124,6 @@ public class DeviceSecurityPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
       name: UIApplication.userDidTakeScreenshotNotification,
       object: nil
     )
-    center.addObserver(
-      self,
-      selector: #selector(screenCaptureDidChange),
-      name: UIScreen.capturedDidChangeNotification,
-      object: nil
-    )
     // A recording can already be running when Dart subscribes, and no notification will
     // announce it. Report it now so the app does not show codes to someone who started
     // recording before the screen opened.
@@ -118,16 +134,11 @@ public class DeviceSecurityPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
   }
 
   public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-    // By name: removeObserver(self) would also drop the observers behind the blur.
-    let center = NotificationCenter.default
-    center.removeObserver(
+    // By name: removeObserver(self) would also drop the observers behind the blur. The capture
+    // observer stays too: the blur needs it, and without a sink it sends nothing.
+    NotificationCenter.default.removeObserver(
       self,
       name: UIApplication.userDidTakeScreenshotNotification,
-      object: nil
-    )
-    center.removeObserver(
-      self,
-      name: UIScreen.capturedDidChangeNotification,
       object: nil
     )
     eventSink = nil
@@ -139,6 +150,7 @@ public class DeviceSecurityPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
   }
 
   @objc private func screenCaptureDidChange(_ notification: Notification) {
+    updateBlur()
     guard let source = (notification.object as? UIScreen) ?? screen() else { return }
     send("screenRecordingChanged", ["isRecording": source.isCaptured])
   }
@@ -156,9 +168,7 @@ public class DeviceSecurityPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
       if let args = call.arguments as? [String: Any],
          let enabled = args["enabled"] as? Bool {
         isProtectionEnabled = enabled
-        if !enabled {
-          hideBlur()
-        }
+        updateBlur()
         result(nil)
       } else {
         result(FlutterError(
