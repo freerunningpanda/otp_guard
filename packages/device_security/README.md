@@ -46,6 +46,8 @@ The generated files are committed, so the project builds without running the gen
 | `hasKey` | `alias: String` | `bool` | `KeyStore.containsAlias` | `SecItemCopyMatching` by application tag |
 | `deleteKey` | `alias: String` | `void` | `KeyStore.deleteEntry` | `SecItemDelete` by application tag |
 
+`generateKey`, `hasKey` and `deleteKey` run on a background thread (Pigeon `@TaskQueue`, one serial queue for the three), because the Keystore and the Secure Enclave can take from tens to hundreds of milliseconds and the interface would freeze on the main thread. `isDeviceSecure` is quick and stays on the main thread.
+
 The private key is created inside the Keystore or the Secure Enclave and never leaves it. Not even the app can read it, it can only ask the chip to sign something. The keys do not require user authentication yet: the biometric check comes with signing.
 
 ### Public key format

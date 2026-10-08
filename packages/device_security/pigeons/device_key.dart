@@ -20,15 +20,25 @@ import 'package:pigeon/pigeon.dart';
 )
 @HostApi()
 abstract class DeviceKeyApi {
+  // Pigeon runs the host methods on the main thread of the platform by
+  // default. The key operations talk to the Keystore or the Secure Enclave and
+  // can take from tens to hundreds of milliseconds, which would freeze the
+  // interface. @TaskQueue moves them to a background thread. The
+  // implementations keep no state, so this is safe. isDeviceSecure is quick
+  // and stays on the main thread.
+
   /// Whether the device is protected by a screen lock.
   bool isDeviceSecure();
 
   /// Creates a key pair under [alias] and returns the public key.
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   Uint8List generateKey(String alias);
 
   /// Whether a key pair exists under [alias].
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   bool hasKey(String alias);
 
   /// Deletes the key pair under [alias], if there is one.
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   void deleteKey(String alias);
 }

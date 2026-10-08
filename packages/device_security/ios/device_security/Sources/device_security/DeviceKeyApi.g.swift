@@ -113,6 +113,11 @@ class DeviceKeyApiSetup {
   /// Sets up an instance of `DeviceKeyApi` to handle messages through the `binaryMessenger`.
   static func setUp(binaryMessenger: FlutterBinaryMessenger, api: DeviceKeyApi?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    #if os(iOS)
+      let taskQueue = binaryMessenger.makeBackgroundTaskQueue?()
+    #else
+      let taskQueue: FlutterTaskQueue? = nil
+    #endif
     /// Whether the device is protected by a screen lock.
     let isDeviceSecureChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.isDeviceSecure\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
@@ -128,7 +133,9 @@ class DeviceKeyApiSetup {
       isDeviceSecureChannel.setMessageHandler(nil)
     }
     /// Creates a key pair under [alias] and returns the public key.
-    let generateKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.generateKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let generateKeyChannel = taskQueue == nil
+      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.generateKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.generateKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
     if let api = api {
       generateKeyChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -144,7 +151,9 @@ class DeviceKeyApiSetup {
       generateKeyChannel.setMessageHandler(nil)
     }
     /// Whether a key pair exists under [alias].
-    let hasKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.hasKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let hasKeyChannel = taskQueue == nil
+      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.hasKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.hasKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
     if let api = api {
       hasKeyChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -160,7 +169,9 @@ class DeviceKeyApiSetup {
       hasKeyChannel.setMessageHandler(nil)
     }
     /// Deletes the key pair under [alias], if there is one.
-    let deleteKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.deleteKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let deleteKeyChannel = taskQueue == nil
+      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.deleteKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.deleteKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
     if let api = api {
       deleteKeyChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
