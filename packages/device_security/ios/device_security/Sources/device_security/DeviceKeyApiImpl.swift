@@ -78,10 +78,25 @@ final class DeviceKeyApiImpl: DeviceKeyApi {
       ],
     ]
 
-    // Create the key (a reference to the private key comes back), take its public part and ask
-    // for the public key as bytes. Any step may fail, and then `error` holds the reason.
-    guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error),
-          let publicKey = SecKeyCopyPublicKey(privateKey),
+    // Create the key (a reference to the private key comes back). If this fails, nothing was
+    // stored, and `error` holds the reason.
+    guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
+      throw generationError(error)
+    }
+
+    // From here on the key is already stored in the keychain. If anything below fails, the call
+    // fails, but the key would stay, and the next call would answer KEY_EXISTS for a key that no
+    // caller ever received. So it is deleted unless the call succeeds. (Best effort: a failed
+    // delete cannot be reported better than the error that brought us here.)
+    var succeeded = false
+    defer {
+      if !succeeded {
+        SecItemDelete(query(alias) as CFDictionary)
+      }
+    }
+
+    // Take the public part of the key and ask for it as bytes. Either step may fail.
+    guard let publicKey = SecKeyCopyPublicKey(privateKey),
           let point = SecKeyCopyExternalRepresentation(publicKey, &error) as Data?
     else {
       throw generationError(error)
@@ -96,6 +111,7 @@ final class DeviceKeyApiImpl: DeviceKeyApi {
         details: nil
       )
     }
+    succeeded = true
     return FlutterStandardTypedData(bytes: Data(Self.p256PublicKeyHeader) + point)
   }
 
@@ -140,7 +156,9 @@ final class DeviceKeyApiImpl: DeviceKeyApi {
   // Turns the error the system put into the out-parameter into a PigeonError. It is a
   // reference-counted C object, so its ownership is taken before reading the message.
   private func generationError(_ error: Unmanaged<CFError>?) -> PigeonError {
+    // SecKeyCopyPublicKey fails without filling `error`, so there may be no reason to report.
     let message = error.map { ($0.takeRetainedValue() as Error).localizedDescription }
+      ?? "The key could not be created"
     return PigeonError(code: "KEY_GENERATION_FAILED", message: message, details: nil)
   }
 
