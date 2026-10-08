@@ -37,7 +37,7 @@ The native work lives in [`packages/device_security`](packages/device_security/R
 - [x] Project and plugin scaffold, strict linting
 - [x] `device_security`: screen protection over `MethodChannel` (Kotlin, Swift)
 - [x] `device_security`: screenshot and screen-recording events over `EventChannel`
-- [ ] `device_security`: hardware-backed key and signing (Pigeon)
+- [x] `device_security`: hardware-backed key and signing (Pigeon)
 - [x] Channel tests with a mocked platform side
 - [ ] TOTP generation with the RFC 6238 test vectors
 - [ ] Accounts via QR code, secure storage, PIN and biometric lock
