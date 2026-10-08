@@ -1,5 +1,6 @@
 import 'package:device_security/device_security_method_channel.dart';
 import 'package:device_security/security_event.dart';
+import 'package:device_security/src/device_key_api.g.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -163,6 +164,84 @@ void main() {
       await second.cancel();
       await pumpEventQueue();
       expect(cancelCount, 1);
+    });
+  });
+
+  group('device key api', () {
+    const codec = DeviceKeyApi.pigeonChannelCodec;
+    const methods = ['isDeviceSecure', 'generateKey', 'hasKey', 'deleteKey'];
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    final received = <String, Object?>{};
+
+    String channelName(String method) =>
+        'dev.flutter.pigeon.device_security.DeviceKeyApi.$method';
+
+    // Stands in for the native side: Pigeon sends the arguments as a list and
+    // expects a list back, [value] on success or [code, message, details].
+    void mockHost(String method, Object? reply) {
+      messenger.setMockMessageHandler(channelName(method), (message) async {
+        received[method] = codec.decodeMessage(message);
+        return codec.encodeMessage(reply);
+      });
+    }
+
+    setUp(received.clear);
+
+    tearDown(() {
+      for (final method in methods) {
+        messenger.setMockMessageHandler(channelName(method), null);
+      }
+    });
+
+    test('isDeviceSecure returns the native answer', () async {
+      mockHost('isDeviceSecure', <Object?>[true]);
+
+      expect(await platform.isDeviceSecure(), isTrue);
+    });
+
+    test('generateKey sends the alias and returns the public key', () async {
+      final publicKey = Uint8List.fromList([4, 5, 6]);
+      mockHost('generateKey', <Object?>[publicKey]);
+
+      expect(await platform.generateKey('login'), publicKey);
+      expect(received['generateKey'], <Object?>['login']);
+    });
+
+    test('hasKey sends the alias and returns the native answer', () async {
+      mockHost('hasKey', <Object?>[true]);
+
+      expect(await platform.hasKey('login'), isTrue);
+      expect(received['hasKey'], <Object?>['login']);
+    });
+
+    test('deleteKey sends the alias', () async {
+      mockHost('deleteKey', <Object?>[null]);
+
+      await platform.deleteKey('login');
+
+      expect(received['deleteKey'], <Object?>['login']);
+    });
+
+    test('a native error arrives as a PlatformException', () {
+      mockHost('generateKey', <Object?>[
+        'KEY_EXISTS',
+        "A key with the alias 'login' already exists",
+        null,
+      ]);
+
+      expect(
+        platform.generateKey('login'),
+        throwsA(
+          isA<PlatformException>()
+              .having((e) => e.code, 'code', 'KEY_EXISTS')
+              .having(
+                (e) => e.message,
+                'message',
+                "A key with the alias 'login' already exists",
+              ),
+        ),
+      );
     });
   });
 }

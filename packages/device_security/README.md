@@ -2,7 +2,7 @@
 
 Native screen protection and security events for Flutter apps that show sensitive data.
 
-> API draft. Nothing below is implemented yet; this file is the contract the implementation will follow.
+The API below is implemented on Android and iOS. Signing with the device key is the next step and is not part of it yet.
 
 ## Channels
 
@@ -10,13 +10,13 @@ Native screen protection and security events for Flutter apps that show sensitiv
 |---|---|---|
 | `MethodChannel` | `com.freerunningpanda.device_security/methods` | Dart calls native |
 | `EventChannel` | `com.freerunningpanda.device_security/events` | native streams to Dart |
+| Pigeon (generated) | `dev.flutter.pigeon.device_security.DeviceKeyApi.*` | Dart calls native, see [Key API](#key-api) |
 
 ## Methods
 
 | Method | Arguments | Returns | Android | iOS |
 |---|---|---|---|---|
 | `setScreenProtection` | `enabled: bool` | `void` | `FLAG_SECURE` on the activity window: blocks screenshots, screen recording and the task-switcher preview | Covers every window with a blur while the app is inactive or the screen is captured, so the task switcher and a recording show no content |
-| `isDeviceSecure` | none | `bool` | `KeyguardManager.isDeviceSecure` | `LAContext.canEvaluatePolicy(.deviceOwnerAuthentication)` |
 
 Errors are returned as `PlatformException` with these codes and mapped to typed failures on the Dart side:
 
@@ -24,7 +24,38 @@ Errors are returned as `PlatformException` with these codes and mapped to typed 
 |---|---|
 | `INVALID_ARGUMENT` | A required argument is missing, for example `enabled` in `setScreenProtection`. The call changes nothing, so protection that is on stays on |
 | `NO_ACTIVITY` | Android: the plugin is not attached to an activity, so there is no window to protect |
-| `UNAVAILABLE` | The platform API is missing on this OS version |
+| `UNAVAILABLE` | The platform API is missing on this OS version, or on iOS the device has no Secure Enclave (the simulator) |
+| `KEY_EXISTS` | `generateKey` was called with an alias that already has a key. Nothing is replaced: delete the key first |
+| `KEY_GENERATION_FAILED` | The Keystore or the Secure Enclave failed to create the key. The message carries the system's reason |
+| `KEY_STORE_FAILED` | `hasKey` or `deleteKey` failed to reach the Keystore or the keychain |
+
+## Key API
+
+The key API is described in [`pigeons/device_key.dart`](pigeons/device_key.dart). [Pigeon](https://pub.dev/packages/pigeon) generates the channel code for Dart, Kotlin and Swift from it, so a wrong method name or argument type fails to compile instead of failing at runtime. After changing the description, regenerate the code from this directory:
+
+```
+dart run pigeon --input pigeons/device_key.dart
+```
+
+The generated files are committed, so the project builds without running the generator. Do not edit them by hand: the next generation overwrites the edits. Errors reach Dart as `PlatformException` with the codes above.
+
+| Method | Arguments | Returns | Android | iOS |
+|---|---|---|---|---|
+| `isDeviceSecure` | none | `bool` | `KeyguardManager.isDeviceSecure` | `LAContext.canEvaluatePolicy(.deviceOwnerAuthentication)` |
+| `generateKey` | `alias: String` | `Uint8List`, the public key | EC key pair, curve secp256r1, purpose sign, digest SHA-256, in the Android Keystore | EC key pair, 256 bits, in the Secure Enclave (`kSecAttrTokenIDSecureEnclave`), stored in the keychain with the alias as application tag |
+| `hasKey` | `alias: String` | `bool` | `KeyStore.containsAlias` | `SecItemCopyMatching` by application tag |
+| `deleteKey` | `alias: String` | `void` | `KeyStore.deleteEntry` | `SecItemDelete` by application tag |
+
+The private key is created inside the Keystore or the Secure Enclave and never leaves it. Not even the app can read it, it can only ask the chip to sign something. The keys do not require user authentication yet: the biometric check comes with signing.
+
+### Public key format
+
+The two platforms return the key in different formats, and a server wants one. The plugin converts it, so `generateKey` returns the same bytes layout on both: X.509 SubjectPublicKeyInfo in DER, 91 bytes for a P-256 key. This is what servers load directly, for example Java's `X509EncodedKeySpec`, `openssl ec -pubin -inform DER` or Python's `cryptography.hazmat.primitives.serialization.load_der_public_key`.
+
+- **Android** already gives it: `PublicKey.encoded` is that format.
+- **iOS** gives only the raw point (X9.63, 65 bytes: `04`, then X and Y). The plugin puts the fixed 26-byte DER header of a P-256 key in front of it.
+
+The conversion lives in the plugin, not in Dart or on the server, so no caller needs a platform check.
 
 ## Events
 
@@ -48,8 +79,9 @@ These come from the platforms and are part of the design, not bugs:
 - **Android can block, but detects only on new versions.** `FLAG_SECURE` works on every supported version. Screenshot detection needs Android 14, screen-recording detection needs Android 15. On older versions the stream stays silent, and protection relies on `FLAG_SECURE`.
 - **With `FLAG_SECURE` enabled, Android produces no screenshot events**, because the screenshot does not happen.
 - **On iOS, `screenRecordingChanged` means any screen capture, not only recording.** `isRecording` is `UIScreen.isCaptured`, which is also true while the screen is mirrored with AirPlay or to an external display. For an authenticator this is the wanted behavior: the codes leave the device in all these cases.
+- **The iOS simulator has no Secure Enclave.** `generateKey` fails there with `UNAVAILABLE` instead of creating a software key, which would not be the hardware-backed key the app asks for. Check the key operations on a real iPhone.
 - **The iOS blur appears on every loss of focus, not only in the task switcher.** `willResignActive` also fires for Control Center, an incoming call and system prompts such as Face ID, so the screen blurs under them too. For an authenticator this is the wanted behavior.
 
 ## Planned next
 
-A hardware-backed key (Android Keystore, iOS Secure Enclave) that signs a server challenge after a biometric check. This part will use [Pigeon](https://pub.dev/packages/pigeon) to generate type-safe channel code, next to the hand-written channels above.
+Signing a server challenge with the device key after a biometric check. It will be added to the Pigeon API above.

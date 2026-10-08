@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:device_security/device_security.dart';
 import 'package:device_security/device_security_method_channel.dart';
 import 'package:device_security/device_security_platform_interface.dart';
@@ -9,6 +11,8 @@ class MockDeviceSecurityPlatform
     implements DeviceSecurityPlatform {
   bool? receivedEnabled;
   Stream<SecurityEvent> events = const Stream.empty();
+  bool deviceSecure = false;
+  final keys = <String, Uint8List>{};
 
   @override
   Future<void> setScreenProtection({required bool enabled}) async {
@@ -17,6 +21,21 @@ class MockDeviceSecurityPlatform
 
   @override
   Stream<SecurityEvent> get securityEvents => events;
+
+  @override
+  Future<bool> isDeviceSecure() async => deviceSecure;
+
+  @override
+  Future<Uint8List> generateKey(String alias) async =>
+      keys[alias] = Uint8List.fromList([1, 2, 3]);
+
+  @override
+  Future<bool> hasKey(String alias) async => keys.containsKey(alias);
+
+  @override
+  Future<void> deleteKey(String alias) async {
+    keys.remove(alias);
+  }
 }
 
 void main() {
@@ -54,5 +73,35 @@ void main() {
     DeviceSecurityPlatform.instance = fakePlatform;
 
     expect(deviceSecurityPlugin.securityEvents, emits(event));
+  });
+
+  group('device key', () {
+    late DeviceSecurity deviceSecurityPlugin;
+    late MockDeviceSecurityPlatform fakePlatform;
+
+    setUp(() {
+      deviceSecurityPlugin = DeviceSecurity();
+      fakePlatform = MockDeviceSecurityPlatform();
+      DeviceSecurityPlatform.instance = fakePlatform;
+    });
+
+    test('isDeviceSecure forwards the platform answer', () async {
+      fakePlatform.deviceSecure = true;
+
+      expect(await deviceSecurityPlugin.isDeviceSecure(), isTrue);
+    });
+
+    test('generateKey, hasKey and deleteKey forward to the platform', () async {
+      expect(await deviceSecurityPlugin.hasKey('login'), isFalse);
+
+      final publicKey = await deviceSecurityPlugin.generateKey('login');
+
+      expect(publicKey, Uint8List.fromList([1, 2, 3]));
+      expect(await deviceSecurityPlugin.hasKey('login'), isTrue);
+
+      await deviceSecurityPlugin.deleteKey('login');
+
+      expect(await deviceSecurityPlugin.hasKey('login'), isFalse);
+    });
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:device_security/device_security_method_channel.dart';
 import 'package:device_security/security_event.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -36,4 +38,21 @@ abstract class DeviceSecurityPlatform extends PlatformInterface {
   /// at subscription time sends nothing. Until a [ScreenRecordingChanged] with
   /// `isRecording` true arrives, treat the screen as not recorded.
   Stream<SecurityEvent> get securityEvents;
+
+  /// Whether the device is protected by a screen lock.
+  Future<bool> isDeviceSecure();
+
+  /// Creates a key pair under [alias] in the secure hardware and returns the
+  /// public key as X.509 SubjectPublicKeyInfo in DER, on both platforms.
+  ///
+  /// The private key never leaves the hardware. Throws a `PlatformException`
+  /// with the code `KEY_EXISTS` if the alias is taken, `UNAVAILABLE` if the
+  /// device has no secure hardware for the key, or `KEY_GENERATION_FAILED`.
+  Future<Uint8List> generateKey(String alias);
+
+  /// Whether a key pair exists under [alias].
+  Future<bool> hasKey(String alias);
+
+  /// Deletes the key pair under [alias]. Does nothing if there is none.
+  Future<void> deleteKey(String alias);
 }

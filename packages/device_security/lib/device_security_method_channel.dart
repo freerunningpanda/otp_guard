@@ -1,5 +1,6 @@
 import 'package:device_security/device_security_platform_interface.dart';
 import 'package:device_security/security_event.dart';
+import 'package:device_security/src/device_key_api.g.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -18,6 +19,10 @@ class MethodChannelDeviceSecurity extends DeviceSecurityPlatform {
     'com.freerunningpanda.device_security/events',
   );
 
+  // The generated client of the key API. Calls go through Pigeon channels, not
+  // through methodChannel.
+  final _keyApi = DeviceKeyApi();
+
   // Built once: every call to receiveBroadcastStream() would create a new
   // stream, and the native side would then see one more listener each time.
   @override
@@ -34,6 +39,18 @@ class MethodChannelDeviceSecurity extends DeviceSecurityPlatform {
       <String, dynamic>{'enabled': enabled},
     );
   }
+
+  @override
+  Future<bool> isDeviceSecure() => _keyApi.isDeviceSecure();
+
+  @override
+  Future<Uint8List> generateKey(String alias) => _keyApi.generateKey(alias);
+
+  @override
+  Future<bool> hasKey(String alias) => _keyApi.hasKey(alias);
+
+  @override
+  Future<void> deleteKey(String alias) => _keyApi.deleteKey(alias);
 
   // Returns null for an event type this version does not know, which the
   // stream above drops.
