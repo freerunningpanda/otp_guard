@@ -65,7 +65,8 @@ class DeviceSecurity {
   /// - `USER_CANCELED` if the user closes the prompt;
   /// - `BIOMETRY_UNAVAILABLE` if biometrics are not set up or not usable;
   /// - `KEY_INVALIDATED` if the fingerprints or faces changed. The key no
-  ///   longer works, on purpose: create a new one and register it again;
+  ///   longer works, on purpose: create a new one and register it again. On
+  ///   Android it is also returned when the key is deleted while the call runs;
   /// - `SIGNING_FAILED` for any other failure.
   ///
   /// The texts of the biometric prompt belong to the app, so it can translate

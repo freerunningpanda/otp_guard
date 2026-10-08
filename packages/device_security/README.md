@@ -31,7 +31,7 @@ Errors are returned as `PlatformException` with these codes and mapped to typed 
 | `KEY_NOT_FOUND` | `sign` was called with an alias that has no key |
 | `USER_CANCELED` | The user closed the biometric prompt of `sign` |
 | `BIOMETRY_UNAVAILABLE` | Biometrics are not set up, not available or locked out. Also from `generateKey`: a key that needs biometrics cannot be made without enrolled ones |
-| `KEY_INVALIDATED` | The set of fingerprints or faces changed, so the key no longer works. This is a normal case, see [Signing](#signing) |
+| `KEY_INVALIDATED` | The set of fingerprints or faces changed, so the key no longer works. This is a normal case, see [Signing](#signing). On Android also when the key is deleted while `sign` runs |
 | `SIGNING_FAILED` | `sign` failed for any other reason. The message carries the system's reason |
 | `ACTIVITY_NOT_SUPPORTED` | Android: `sign` needs a `FragmentActivity`, see [What the app must provide](#what-the-app-must-provide) |
 | `SIGNING_IN_PROGRESS` | Android: `sign` was called while a biometric prompt is already shown |
@@ -75,7 +75,7 @@ The conversion lives in the plugin, not in Dart or on the server, so no caller n
 
 **The signature** is ECDSA over the SHA-256 of the challenge bytes, in DER (`SEQUENCE { INTEGER r, INTEGER s }`). Both platforms produce the same format, so nothing is converted and a server needs one parser. Together with the public key format above, a server checks it in one step, for example Java's `Signature.getInstance("SHA256withECDSA")` or Python's `cryptography` `ec.ECDSA(hashes.SHA256())`.
 
-**`KEY_INVALIDATED` is a normal case, not a failure.** When a fingerprint or a face is added (and on iOS also removed), the key stops working on purpose. Otherwise a stranger who adds their own finger would get access. The app must then create a new key with `generateKey` (after `deleteKey` if the old one is still there) and register the new public key on the server again.
+**`KEY_INVALIDATED` is a normal case, not a failure.** When a fingerprint or a face is added (and on iOS also removed), the key stops working on purpose. Otherwise a stranger who adds their own finger would get access. The app must then create a new key with `generateKey` (after `deleteKey` if the old one is still there) and register the new public key on the server again. On Android the same code is also returned when the key is deleted while a signing call is in progress (between looking the key up and using it): the Keystore reports that with the same exception, `KeyPermanentlyInvalidatedException`. For the app the action is the same, create a key again.
 
 **Keys made before this step do not require biometrics.** `deleteKey` them and create new ones.
 
