@@ -47,7 +47,8 @@ abstract class DeviceSecurityPlatform extends PlatformInterface {
   ///
   /// The private key never leaves the hardware. Throws a `PlatformException`
   /// with the code `KEY_EXISTS` if the alias is taken, `UNAVAILABLE` if the
-  /// device has no secure hardware for the key, or `KEY_GENERATION_FAILED`.
+  /// device has no secure hardware for the key (no key is kept then), or
+  /// `KEY_GENERATION_FAILED`.
   Future<Uint8List> generateKey(String alias);
 
   /// Whether a key pair exists under [alias].

@@ -24,7 +24,7 @@ Errors are returned as `PlatformException` with these codes and mapped to typed 
 |---|---|
 | `INVALID_ARGUMENT` | A required argument is missing, for example `enabled` in `setScreenProtection`. The call changes nothing, so protection that is on stays on |
 | `NO_ACTIVITY` | Android: the plugin is not attached to an activity, so there is no window to protect |
-| `UNAVAILABLE` | The platform API is missing on this OS version, or on iOS the device has no Secure Enclave (the simulator) |
+| `UNAVAILABLE` | The platform API is missing on this OS version, or the device has no secure hardware for the key: no Secure Enclave on iOS (the simulator), or a key that the Android Keystore could create only in software (most emulators). The key is not kept |
 | `KEY_EXISTS` | `generateKey` was called with an alias that already has a key. Nothing is replaced: delete the key first |
 | `KEY_GENERATION_FAILED` | The Keystore or the Secure Enclave failed to create the key. The message carries the system's reason |
 | `KEY_STORE_FAILED` | `hasKey` or `deleteKey` failed to reach the Keystore or the keychain |
@@ -42,7 +42,7 @@ The generated files are committed, so the project builds without running the gen
 | Method | Arguments | Returns | Android | iOS |
 |---|---|---|---|---|
 | `isDeviceSecure` | none | `bool` | `KeyguardManager.isDeviceSecure` | `LAContext.canEvaluatePolicy(.deviceOwnerAuthentication)` |
-| `generateKey` | `alias: String` | `Uint8List`, the public key | EC key pair, curve secp256r1, purpose sign, digest SHA-256, in the Android Keystore | EC key pair, 256 bits, in the Secure Enclave (`kSecAttrTokenIDSecureEnclave`), stored in the keychain with the alias as application tag |
+| `generateKey` | `alias: String` | `Uint8List`, the public key | EC key pair, curve secp256r1, purpose sign, digest SHA-256, in the Android Keystore. Afterwards `KeyInfo` is checked: only a key in the TEE or StrongBox is kept (`securityLevel` from Android 12, `isInsideSecureHardware` before) | EC key pair, 256 bits, in the Secure Enclave (`kSecAttrTokenIDSecureEnclave`), stored in the keychain with the alias as application tag |
 | `hasKey` | `alias: String` | `bool` | `KeyStore.containsAlias` | `SecItemCopyMatching` by application tag |
 | `deleteKey` | `alias: String` | `void` | `KeyStore.deleteEntry` | `SecItemDelete` by application tag |
 
@@ -81,7 +81,7 @@ These come from the platforms and are part of the design, not bugs:
 - **Android can block, but detects only on new versions.** `FLAG_SECURE` works on every supported version. Screenshot detection needs Android 14, screen-recording detection needs Android 15. On older versions the stream stays silent, and protection relies on `FLAG_SECURE`.
 - **With `FLAG_SECURE` enabled, Android produces no screenshot events**, because the screenshot does not happen.
 - **On iOS, `screenRecordingChanged` means any screen capture, not only recording.** `isRecording` is `UIScreen.isCaptured`, which is also true while the screen is mirrored with AirPlay or to an external display. For an authenticator this is the wanted behavior: the codes leave the device in all these cases.
-- **The iOS simulator has no Secure Enclave.** `generateKey` fails there with `UNAVAILABLE` instead of creating a software key, which would not be the hardware-backed key the app asks for. Check the key operations on a real iPhone.
+- **Simulators and emulators have no secure hardware, and the plugin refuses to fake it.** On iOS the Secure Enclave is missing, so `generateKey` fails with `UNAVAILABLE`. On Android the Keystore creates the key anyway, but in software on an emulator or on a device without a TEE, so the plugin reads `KeyInfo` after creating it, deletes a software key and fails with `UNAVAILABLE` the same way. A key that is not in hardware would defeat the point of the feature, and the app could not tell the difference. The behavior is the same on both platforms. Check the key operations on a real iPhone and a real Android phone. Everything else (`isDeviceSecure`, `hasKey`, `deleteKey`, the error codes) works on simulators and emulators.
 - **The iOS blur appears on every loss of focus, not only in the task switcher.** `willResignActive` also fires for Control Center, an incoming call and system prompts such as Face ID, so the screen blurs under them too. For an authenticator this is the wanted behavior.
 
 ## Planned next

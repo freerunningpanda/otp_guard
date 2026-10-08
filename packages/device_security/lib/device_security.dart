@@ -39,8 +39,8 @@ class DeviceSecurity {
   ///
   /// The private key never leaves the hardware. Throws a `PlatformException`
   /// with the code `KEY_EXISTS` if the alias is taken, `UNAVAILABLE` if the
-  /// device has no secure hardware for the key (the iOS simulator), or
-  /// `KEY_GENERATION_FAILED`.
+  /// device has no secure hardware for the key (the iOS simulator, most
+  /// Android emulators; no key is kept then), or `KEY_GENERATION_FAILED`.
   Future<Uint8List> generateKey(String alias) =>
       DeviceSecurityPlatform.instance.generateKey(alias);
 

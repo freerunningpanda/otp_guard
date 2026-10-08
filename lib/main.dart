@@ -65,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await step('isDeviceSecure', security.isDeviceSecure);
     await step('deleteKey (clean start)', () => security.deleteKey(alias));
     await step('hasKey, expect false', () => security.hasKey(alias));
-    await step('generateKey #1', () async {
+    await step('generateKey #1, UNAVAILABLE on an emulator', () async {
       final key = await security.generateKey(alias);
       final head = key
           .take(4)
@@ -73,9 +73,12 @@ class _MyHomePageState extends State<MyHomePage> {
           .join();
       return '${key.length} bytes, starts $head';
     });
-    await step('hasKey, expect true', () => security.hasKey(alias));
     await step(
-      'generateKey #2, expect KEY_EXISTS',
+      'hasKey, true only if the key was made',
+      () => security.hasKey(alias),
+    );
+    await step(
+      'generateKey #2, KEY_EXISTS on a device',
       () => security.generateKey(alias),
     );
     await step('deleteKey', () => security.deleteKey(alias));
