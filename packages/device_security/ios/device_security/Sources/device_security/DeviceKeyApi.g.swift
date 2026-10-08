@@ -95,6 +95,7 @@ class DeviceKeyApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable 
   static let shared = DeviceKeyApiPigeonCodec(readerWriter: DeviceKeyApiPigeonCodecReaderWriter())
 }
 
+
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol DeviceKeyApi {
   /// Whether the device is protected by a screen lock.
@@ -105,6 +106,24 @@ protocol DeviceKeyApi {
   func hasKey(alias: String) throws -> Bool
   /// Deletes the key pair under [alias], if there is one.
   func deleteKey(alias: String) throws
+  /// Signs [challenge] with the private key under [alias] after the user
+  /// confirms with biometrics, and returns the signature.
+  ///
+  /// The signature is ECDSA over the SHA-256 of [challenge], in DER, the same
+  /// on both platforms.
+  ///
+  /// The texts of the biometric prompt belong to the app, not to the plugin,
+  /// so the app can translate them and word them for its scenario: [title] is
+  /// the headline, [subtitle] an optional explanation (on iOS it is the reason
+  /// the system shows, [title] is used if it is null), and [cancelText] the
+  /// label of the cancel button. [title] and [cancelText] must not be empty.
+  ///
+  /// It is @async because the answer comes after the user answers the
+  /// biometric prompt, which can take any time. It stays off @TaskQueue on
+  /// purpose: the queue of the other key calls is serial, and a prompt that
+  /// waits for a person would block them all. On iOS the implementation moves
+  /// the blocking system call to its own background queue.
+  func sign(alias: String, challenge: FlutterStandardTypedData, title: String, subtitle: String?, cancelText: String) async throws -> FlutterStandardTypedData
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -185,6 +204,44 @@ class DeviceKeyApiSetup {
       }
     } else {
       deleteKeyChannel.setMessageHandler(nil)
+    }
+    /// Signs [challenge] with the private key under [alias] after the user
+    /// confirms with biometrics, and returns the signature.
+    ///
+    /// The signature is ECDSA over the SHA-256 of [challenge], in DER, the same
+    /// on both platforms.
+    ///
+    /// The texts of the biometric prompt belong to the app, not to the plugin,
+    /// so the app can translate them and word them for its scenario: [title] is
+    /// the headline, [subtitle] an optional explanation (on iOS it is the reason
+    /// the system shows, [title] is used if it is null), and [cancelText] the
+    /// label of the cancel button. [title] and [cancelText] must not be empty.
+    ///
+    /// It is @async because the answer comes after the user answers the
+    /// biometric prompt, which can take any time. It stays off @TaskQueue on
+    /// purpose: the queue of the other key calls is serial, and a prompt that
+    /// waits for a person would block them all. On iOS the implementation moves
+    /// the blocking system call to its own background queue.
+    let signChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.device_security.DeviceKeyApi.sign\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      signChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let aliasArg = args[0] as! String
+        let challengeArg = args[1] as! FlutterStandardTypedData
+        let titleArg = args[2] as! String
+        let subtitleArg: String? = nilOrValue(args[3])
+        let cancelTextArg = args[4] as! String
+        Task { @MainActor in
+          do {
+            let result = try await api.sign(alias: aliasArg, challenge: challengeArg, title: titleArg, subtitle: subtitleArg, cancelText: cancelTextArg)
+            reply(wrapResult(result))
+          } catch {
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      signChannel.setMessageHandler(nil)
     }
   }
 }

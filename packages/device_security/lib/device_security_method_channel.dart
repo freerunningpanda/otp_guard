@@ -52,6 +52,15 @@ class MethodChannelDeviceSecurity extends DeviceSecurityPlatform {
   @override
   Future<void> deleteKey(String alias) => _keyApi.deleteKey(alias);
 
+  @override
+  Future<Uint8List> sign(
+    String alias,
+    Uint8List challenge, {
+    required String title,
+    required String cancelText,
+    String? subtitle,
+  }) => _keyApi.sign(alias, challenge, title, subtitle, cancelText);
+
   // Returns null for an event type this version does not know, which the
   // stream above drops.
   SecurityEvent? _parseEvent(Object? event) {

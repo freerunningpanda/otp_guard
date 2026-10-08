@@ -56,4 +56,28 @@ abstract class DeviceSecurityPlatform extends PlatformInterface {
 
   /// Deletes the key pair under [alias]. Does nothing if there is none.
   Future<void> deleteKey(String alias);
+
+  /// Signs [challenge] with the private key under [alias] after the user
+  /// confirms with a fingerprint or a face, and returns the signature.
+  ///
+  /// The signature is ECDSA over the SHA-256 of [challenge], in DER, the same
+  /// on both platforms. The hardware lets the key be used only after the
+  /// biometric check, so the check cannot be bypassed from the app.
+  ///
+  /// Throws a `PlatformException` with the code `KEY_NOT_FOUND` if there is
+  /// no such key, `USER_CANCELED` if the user closes the prompt,
+  /// `BIOMETRY_UNAVAILABLE` if biometrics are not set up or not usable,
+  /// `KEY_INVALIDATED` if the fingerprints or faces changed, so the key no
+  /// longer works, or `SIGNING_FAILED`.
+  ///
+  /// The texts of the biometric prompt are given by the caller: the plugin has
+  /// none of its own. [title] and [cancelText] must not be empty, otherwise the
+  /// call fails with `INVALID_ARGUMENT`. [subtitle] is optional.
+  Future<Uint8List> sign(
+    String alias,
+    Uint8List challenge, {
+    required String title,
+    required String cancelText,
+    String? subtitle,
+  });
 }

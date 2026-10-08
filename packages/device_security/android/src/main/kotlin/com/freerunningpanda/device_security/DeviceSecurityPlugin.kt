@@ -42,6 +42,10 @@ class DeviceSecurityPlugin(
     // Set while Dart listens to the events channel, null otherwise.
     private var eventSink: EventChannel.EventSink? = null
 
+    // The implementation of the key API. Kept to close its biometric prompt when the Activity
+    // goes away.
+    private var keyApi: DeviceKeyApiImpl? = null
+
     // The system callbacks while they are registered, null otherwise. Kept because
     // unregistering needs the same object that was registered.
     private var screenCaptureCallback: Activity.ScreenCaptureCallback? = null
@@ -58,10 +62,13 @@ class DeviceSecurityPlugin(
             "com.freerunningpanda.device_security/events"
         )
         eventChannel.setStreamHandler(this)
-        DeviceKeyApi.setUp(
-            flutterPluginBinding.binaryMessenger,
-            DeviceKeyApiImpl(flutterPluginBinding.applicationContext)
+        // The Activity is asked for when a signature needs the biometric prompt.
+        val keyApi = DeviceKeyApiImpl(
+            flutterPluginBinding.applicationContext,
+            activityProvider = { activity }
         )
+        this.keyApi = keyApi
+        DeviceKeyApi.setUp(flutterPluginBinding.binaryMessenger, keyApi)
     }
 
     override fun onMethodCall(
@@ -95,6 +102,7 @@ class DeviceSecurityPlugin(
         channel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
         DeviceKeyApi.setUp(binding.binaryMessenger, null)
+        keyApi = null
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
@@ -136,6 +144,8 @@ class DeviceSecurityPlugin(
     private fun detachActivity() {
         // Before the reference is cleared: unregistering needs the Activity.
         stopWatching()
+        // A prompt of the old Activity would never answer. Close it, so the signing call ends.
+        keyApi?.cancelPendingSign()
         activity = null
     }
 

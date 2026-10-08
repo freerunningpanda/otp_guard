@@ -72,6 +72,11 @@ kotlin {
 }
 
 dependencies {
+    // The biometric prompt that unlocks the key for a signature.
+    implementation("androidx.biometric:biometric:1.1.0")
+    // The Pigeon code of the async sign method is built on coroutines and runs them on the main
+    // thread.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.mockito:mockito-core:5.14.2")
 }

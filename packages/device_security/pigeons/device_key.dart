@@ -41,4 +41,30 @@ abstract class DeviceKeyApi {
   /// Deletes the key pair under [alias], if there is one.
   @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   void deleteKey(String alias);
+
+  /// Signs [challenge] with the private key under [alias] after the user
+  /// confirms with biometrics, and returns the signature.
+  ///
+  /// The signature is ECDSA over the SHA-256 of [challenge], in DER, the same
+  /// on both platforms.
+  ///
+  /// The texts of the biometric prompt belong to the app, not to the plugin,
+  /// so the app can translate them and word them for its scenario: [title] is
+  /// the headline, [subtitle] an optional explanation (on iOS it is the reason
+  /// the system shows, [title] is used if it is null), and [cancelText] the
+  /// label of the cancel button. [title] and [cancelText] must not be empty.
+  ///
+  /// It is @async because the answer comes after the user answers the
+  /// biometric prompt, which can take any time. It stays off @TaskQueue on
+  /// purpose: the queue of the other key calls is serial, and a prompt that
+  /// waits for a person would block them all. On iOS the implementation moves
+  /// the blocking system call to its own background queue.
+  @async
+  Uint8List sign(
+    String alias,
+    Uint8List challenge,
+    String title,
+    String? subtitle,
+    String cancelText,
+  );
 }

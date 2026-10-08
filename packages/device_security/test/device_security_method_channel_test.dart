@@ -169,7 +169,13 @@ void main() {
 
   group('device key api', () {
     const codec = DeviceKeyApi.pigeonChannelCodec;
-    const methods = ['isDeviceSecure', 'generateKey', 'hasKey', 'deleteKey'];
+    const methods = [
+      'isDeviceSecure',
+      'generateKey',
+      'hasKey',
+      'deleteKey',
+      'sign',
+    ];
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     final received = <String, Object?>{};
@@ -221,6 +227,71 @@ void main() {
       await platform.deleteKey('login');
 
       expect(received['deleteKey'], <Object?>['login']);
+    });
+
+    test(
+      'sign sends the arguments, texts included, and returns the signature',
+      () async {
+        final challenge = Uint8List.fromList([1, 2, 3, 4]);
+        final signature = Uint8List.fromList([0x30, 0x06, 1, 2]);
+        mockHost('sign', <Object?>[signature]);
+
+        final result = await platform.sign(
+          'login',
+          challenge,
+          title: 'Confirm sign-in',
+          subtitle: 'Sign the challenge',
+          cancelText: 'Cancel',
+        );
+
+        expect(result, signature);
+        expect(received['sign'], <Object?>[
+          'login',
+          challenge,
+          'Confirm sign-in',
+          'Sign the challenge',
+          'Cancel',
+        ]);
+      },
+    );
+
+    test('sign sends a missing subtitle as null', () async {
+      mockHost('sign', <Object?>[Uint8List(1)]);
+
+      await platform.sign(
+        'login',
+        Uint8List(1),
+        title: 'Confirm',
+        cancelText: 'Cancel',
+      );
+
+      expect((received['sign']! as List<Object?>)[3], isNull);
+    });
+
+    test('every error code of sign arrives as a PlatformException', () async {
+      for (final code in [
+        'KEY_NOT_FOUND',
+        'USER_CANCELED',
+        'BIOMETRY_UNAVAILABLE',
+        'KEY_INVALIDATED',
+        'SIGNING_FAILED',
+      ]) {
+        mockHost('sign', <Object?>[code, 'message of $code', null]);
+
+        await expectLater(
+          platform.sign(
+            'login',
+            Uint8List(1),
+            title: 'Confirm',
+            cancelText: 'Cancel',
+          ),
+          throwsA(
+            isA<PlatformException>()
+                .having((e) => e.code, 'code', code)
+                .having((e) => e.message, 'message', 'message of $code'),
+          ),
+        );
+      }
     });
 
     test('a native error arrives as a PlatformException', () {

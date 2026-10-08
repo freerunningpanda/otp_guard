@@ -13,6 +13,12 @@ import io.flutter.plugin.common.StandardMethodCodec
 import io.flutter.plugin.common.StandardMessageCodec
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 private object DeviceKeyApiPigeonUtils {
 
   fun wrapResult(result: Any?): List<Any?> {
@@ -56,6 +62,7 @@ private open class DeviceKeyApiPigeonCodec : StandardMessageCodec() {
   }
 }
 
+
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface DeviceKeyApi {
   /** Whether the device is protected by a screen lock. */
@@ -66,6 +73,26 @@ interface DeviceKeyApi {
   fun hasKey(alias: String): Boolean
   /** Deletes the key pair under [alias], if there is one. */
   fun deleteKey(alias: String)
+  /**
+   * Signs [challenge] with the private key under [alias] after the user
+   * confirms with biometrics, and returns the signature.
+   *
+   * The signature is ECDSA over the SHA-256 of [challenge], in DER, the same
+   * on both platforms.
+   *
+   * The texts of the biometric prompt belong to the app, not to the plugin,
+   * so the app can translate them and word them for its scenario: [title] is
+   * the headline, [subtitle] an optional explanation (on iOS it is the reason
+   * the system shows, [title] is used if it is null), and [cancelText] the
+   * label of the cancel button. [title] and [cancelText] must not be empty.
+   *
+   * It is @async because the answer comes after the user answers the
+   * biometric prompt, which can take any time. It stays off @TaskQueue on
+   * purpose: the queue of the other key calls is serial, and a prompt that
+   * waits for a person would block them all. On iOS the implementation moves
+   * the blocking system call to its own background queue.
+   */
+  suspend fun sign(alias: String, challenge: ByteArray, title: String, subtitle: String?, cancelText: String): ByteArray
 
   companion object {
     /** The codec used by DeviceKeyApi. */
@@ -139,6 +166,29 @@ interface DeviceKeyApi {
               DeviceKeyApiPigeonUtils.wrapError(exception)
             }
             reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.device_security.DeviceKeyApi.sign$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val aliasArg = args[0] as String
+            val challengeArg = args[1] as ByteArray
+            val titleArg = args[2] as String
+            val subtitleArg = args[3] as String?
+            val cancelTextArg = args[4] as String
+            CoroutineScope(Dispatchers.Main).launch {
+              val wrapped: List<Any?> = try {
+                listOf(api.sign(aliasArg, challengeArg, titleArg, subtitleArg, cancelTextArg))
+              } catch (exception: Throwable) {
+                DeviceKeyApiPigeonUtils.wrapError(exception)
+              }
+              reply.reply(wrapped)
+            }
           }
         } else {
           channel.setMessageHandler(null)

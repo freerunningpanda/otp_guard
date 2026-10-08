@@ -13,6 +13,7 @@ class MockDeviceSecurityPlatform
   Stream<SecurityEvent> events = const Stream.empty();
   bool deviceSecure = false;
   final keys = <String, Uint8List>{};
+  (String, Uint8List, String, String?, String)? signed;
 
   @override
   Future<void> setScreenProtection({required bool enabled}) async {
@@ -35,6 +36,18 @@ class MockDeviceSecurityPlatform
   @override
   Future<void> deleteKey(String alias) async {
     keys.remove(alias);
+  }
+
+  @override
+  Future<Uint8List> sign(
+    String alias,
+    Uint8List challenge, {
+    required String title,
+    required String cancelText,
+    String? subtitle,
+  }) async {
+    signed = (alias, challenge, title, subtitle, cancelText);
+    return Uint8List.fromList([9, 9]);
   }
 }
 
@@ -89,6 +102,41 @@ void main() {
       fakePlatform.deviceSecure = true;
 
       expect(await deviceSecurityPlugin.isDeviceSecure(), isTrue);
+    });
+
+    test(
+      'sign forwards the arguments, texts included, to the platform',
+      () async {
+        final challenge = Uint8List.fromList([1, 2, 3, 4]);
+
+        final signature = await deviceSecurityPlugin.sign(
+          'login',
+          challenge,
+          title: 'Confirm sign-in',
+          subtitle: 'Sign the challenge',
+          cancelText: 'Cancel',
+        );
+
+        expect(signature, Uint8List.fromList([9, 9]));
+        expect(fakePlatform.signed, (
+          'login',
+          challenge,
+          'Confirm sign-in',
+          'Sign the challenge',
+          'Cancel',
+        ));
+      },
+    );
+
+    test('sign passes a missing subtitle as null', () async {
+      await deviceSecurityPlugin.sign(
+        'login',
+        Uint8List(1),
+        title: 'Confirm',
+        cancelText: 'Cancel',
+      );
+
+      expect(fakePlatform.signed?.$4, isNull);
     });
 
     test('generateKey, hasKey and deleteKey forward to the platform', () async {
