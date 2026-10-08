@@ -42,10 +42,28 @@ class _MyHomePageState extends State<MyHomePage> {
   // each call returned. The "Run key checks" button runs it again.
   String _keyLog = 'running...';
 
+  // True while one of the checks runs. Both checks use keys under fixed aliases
+  // and delete them first, so a second run started on top of the first would
+  // delete the key under it and mix the two logs. The buttons are disabled
+  // meanwhile.
+  bool _isChecking = false;
+
   @override
   void initState() {
     super.initState();
-    unawaited(_runKeyChecks());
+    unawaited(_check(_runKeyChecks));
+  }
+
+  // Runs one check at a time and always releases the lock, even if the check
+  // throws.
+  Future<void> _check(Future<void> Function() check) async {
+    if (_isChecking) return;
+    setState(() => _isChecking = true);
+    try {
+      await check();
+    } finally {
+      if (mounted) setState(() => _isChecking = false);
+    }
   }
 
   Future<void> _runKeyChecks() async {
@@ -204,7 +222,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               // Runs the key scenario again and shows its result.
               ElevatedButton(
-                onPressed: _runKeyChecks,
+                onPressed: _isChecking
+                    ? null
+                    : () => unawaited(_check(_runKeyChecks)),
                 child: const Text('Run key checks'),
               ),
               Padding(
@@ -216,7 +236,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               // Signs with the key and checks the signature in Dart.
               ElevatedButton(
-                onPressed: _runSignCheck,
+                onPressed: _isChecking
+                    ? null
+                    : () => unawaited(_check(_runSignCheck)),
                 child: const Text('Sign and verify'),
               ),
               Padding(
