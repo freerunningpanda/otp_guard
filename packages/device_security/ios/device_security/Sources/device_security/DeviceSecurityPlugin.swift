@@ -26,6 +26,7 @@ public class DeviceSecurityPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
     let instance = DeviceSecurityPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
     eventChannel.setStreamHandler(instance)
+    DeviceKeyApiSetup.setUp(binaryMessenger: registrar.messenger(), api: DeviceKeyApiImpl())
   }
 
   public override init() {
