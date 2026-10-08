@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:device_security/device_security.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,6 +35,55 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   bool _isScreenProtectionEnabled = false;
+
+  // A demo of the device key API: runs a scenario at start and shows what
+  // each call returned. The "Run key checks" button runs it again.
+  String _keyLog = 'running...';
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_runKeyChecks());
+  }
+
+  Future<void> _runKeyChecks() async {
+    final security = DeviceSecurity();
+    const alias = 'temp_check_key';
+    final log = StringBuffer();
+
+    Future<void> step(String name, Future<Object?> Function() body) async {
+      String line;
+      try {
+        line = 'OK   $name -> ${await body()}';
+      } on PlatformException catch (e) {
+        line = 'ERR  $name -> ${e.code}: ${e.message}';
+      }
+      log.writeln(line);
+      debugPrint('KEYCHECK $line');
+    }
+
+    await step('isDeviceSecure', security.isDeviceSecure);
+    await step('deleteKey (clean start)', () => security.deleteKey(alias));
+    await step('hasKey, expect false', () => security.hasKey(alias));
+    await step('generateKey #1', () async {
+      final key = await security.generateKey(alias);
+      final head = key
+          .take(4)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join();
+      return '${key.length} bytes, starts $head';
+    });
+    await step('hasKey, expect true', () => security.hasKey(alias));
+    await step(
+      'generateKey #2, expect KEY_EXISTS',
+      () => security.generateKey(alias),
+    );
+    await step('deleteKey', () => security.deleteKey(alias));
+    await step('hasKey, expect false', () => security.hasKey(alias));
+    await step('deleteKey again, expect OK', () => security.deleteKey(alias));
+
+    if (mounted) setState(() => _keyLog = log.toString());
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -67,6 +119,18 @@ class _MyHomePageState extends State<MyHomePage> {
               child: _isScreenProtectionEnabled
                   ? const Text('Disable screen protection')
                   : const Text('Enable screen protection'),
+            ),
+            // Runs the key scenario again and shows its result.
+            ElevatedButton(
+              onPressed: _runKeyChecks,
+              child: const Text('Run key checks'),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                _keyLog,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+              ),
             ),
           ],
         ),
