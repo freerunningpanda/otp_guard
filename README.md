@@ -30,7 +30,7 @@ otp_guard/
   .github/workflows/          CI
 ```
 
-The native work lives in [`packages/device_security`](packages/device_security/README.md), a separate plugin with its own API, so it can be reused by other apps. It talks to the platforms through a `MethodChannel` for commands and an `EventChannel` for the stream of security events.
+The native work lives in [`packages/device_security`](packages/device_security/README.md), a separate plugin with its own API, so it can be reused by other apps. It talks to the platforms through a `MethodChannel` for commands, an `EventChannel` for the stream of security events, and a [Pigeon](https://pub.dev/packages/pigeon)-generated API for the device key, so the key calls are type-checked on Dart, Kotlin and Swift.
 
 ## Roadmap
 
