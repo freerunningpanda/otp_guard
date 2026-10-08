@@ -58,6 +58,10 @@ class DeviceSecurityPlugin(
             "com.freerunningpanda.device_security/events"
         )
         eventChannel.setStreamHandler(this)
+        DeviceKeyApi.setUp(
+            flutterPluginBinding.binaryMessenger,
+            DeviceKeyApiImpl(flutterPluginBinding.applicationContext)
+        )
     }
 
     override fun onMethodCall(
@@ -90,6 +94,7 @@ class DeviceSecurityPlugin(
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
+        DeviceKeyApi.setUp(binding.binaryMessenger, null)
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
