@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>The camera scans the QR code of a site to add an account.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Face ID confirms that it is you when the app signs you in.</string>
 	<key>UIApplicationSceneManifest</key>
