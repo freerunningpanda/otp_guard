@@ -171,6 +171,39 @@ OtpAuthParseResult parseOtpAuthUri(String input, {String Function()? newId}) {
   }
 }
 
+/// Builds an account from what a person typed instead of a link: the [issuer]
+/// (optional), the account [name] and the [secret] in Base32.
+///
+/// It gives the same results as [parseOtpAuthUri] for the same mistakes, so the
+/// two ways of adding an account are checked by one set of rules: an empty
+/// [name] is [MissingLabel], an empty [secret] is [MissingSecret], and a
+/// [secret] that is not Base32 is [InvalidSecret]. The algorithm, the digits
+/// and the period are the defaults of the authenticators: SHA-1, 6 and 30.
+OtpAuthParseResult buildOtpAccount({
+  required String name,
+  required String secret,
+  String? issuer,
+  String Function()? newId,
+}) {
+  try {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) throw const _Reject(MissingLabel());
+    final trimmedIssuer = issuer?.trim();
+    return OtpAuthParsed(
+      OtpAccount(
+        id: (newId ?? generateAccountId)(),
+        issuer: (trimmedIssuer == null || trimmedIssuer.isEmpty)
+            ? null
+            : trimmedIssuer,
+        name: trimmedName,
+        secret: _readSecret(secret),
+      ),
+    );
+  } on _Reject catch (reject) {
+    return reject.failure;
+  }
+}
+
 // Carries a failure out of the helpers below to parseOtpAuthUri, which turns it
 // back into a result. It never leaves this file.
 class _Reject implements Exception {

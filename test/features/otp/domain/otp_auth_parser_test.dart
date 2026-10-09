@@ -379,4 +379,85 @@ void main() {
       },
     );
   });
+
+  group('buildOtpAccount, what a person typed', () {
+    OtpAccount built({String? issuer, String name = 'alex', String? secret}) {
+      final result = buildOtpAccount(
+        issuer: issuer,
+        name: name,
+        secret: secret ?? 'JBSWY3DPEHPK3PXP',
+        newId: () => 'id',
+      );
+      expect(result, isA<OtpAuthParsed>(), reason: '$result');
+      return (result as OtpAuthParsed).account;
+    }
+
+    test('makes an account with the defaults of the authenticators', () {
+      final account = built(issuer: 'GitHub', name: 'alex@example.com');
+
+      expect(account.id, 'id');
+      expect(account.issuer, 'GitHub');
+      expect(account.name, 'alex@example.com');
+      expect(account.secret, helloSecret);
+      expect(account.algorithm, OtpAlgorithm.sha1);
+      expect(account.digits, 6);
+      expect(account.period, 30);
+    });
+
+    test('drops spaces around the issuer and the name', () {
+      final account = built(issuer: '  GitHub ', name: ' alex ');
+
+      expect(account.issuer, 'GitHub');
+      expect(account.name, 'alex');
+    });
+
+    test('no issuer, or an empty one, is no issuer', () {
+      expect(built().issuer, isNull);
+      expect(built(issuer: '').issuer, isNull);
+      expect(built(issuer: '   ').issuer, isNull);
+    });
+
+    test('takes a secret written in groups and in lower case', () {
+      expect(built(secret: 'jbsw y3dp ehpk 3pxp').secret, helloSecret);
+    });
+
+    test('an empty name is MissingLabel', () {
+      for (final name in ['', '   ']) {
+        expect(
+          buildOtpAccount(name: name, secret: 'JBSWY3DPEHPK3PXP'),
+          const MissingLabel(),
+          reason: 'name "$name"',
+        );
+      }
+    });
+
+    test('an empty secret is MissingSecret', () {
+      for (final secret in ['', '   ']) {
+        expect(
+          buildOtpAccount(name: 'alex', secret: secret),
+          const MissingSecret(),
+          reason: 'secret "$secret"',
+        );
+      }
+    });
+
+    test('a secret that is not Base32 is InvalidSecret', () {
+      for (final secret in ['abc1', 'JBSWY3DP0', '====', 'M']) {
+        expect(
+          buildOtpAccount(name: 'alex', secret: secret),
+          const InvalidSecret(),
+          reason: 'secret "$secret"',
+        );
+      }
+    });
+
+    test('makes a random id when no generator is given', () {
+      final result = buildOtpAccount(name: 'alex', secret: 'JBSWY3DPEHPK3PXP');
+
+      expect(
+        (result as OtpAuthParsed).account.id,
+        matches(RegExp(r'^[0-9a-f]{32}$')),
+      );
+    });
+  });
 }
