@@ -36,6 +36,7 @@ dependencies:
     path: packages/device_security
   flutter:
     sdk: flutter
+  meta: ^1.18.0
   pointycastle: ^4.0.0
 
 dev_dependencies:
