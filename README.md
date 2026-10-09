@@ -39,7 +39,7 @@ The native work lives in [`packages/device_security`](packages/device_security/R
 - [x] `device_security`: screenshot and screen-recording events over `EventChannel`
 - [x] `device_security`: hardware-backed key and signing (Pigeon)
 - [x] Channel tests with a mocked platform side
-- [ ] TOTP generation with the RFC 6238 test vectors
+- [x] TOTP generation with the RFC 6238 test vectors
 - [ ] Accounts via QR code, secure storage, PIN and biometric lock
 - [ ] Security log and reaction to capture events
 - [ ] CI on GitHub Actions, release with Fastlane
