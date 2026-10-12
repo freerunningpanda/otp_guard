@@ -86,6 +86,7 @@ final class Locked extends AppLockState {
     this.retryAt,
     this.problem,
     this.isBusy = false,
+    this.isPinBlocked = false,
   });
 
   /// Whether the biometric sign-in is on, off or has to be set up again.
@@ -100,8 +101,19 @@ final class Locked extends AppLockState {
   /// Whether a PIN or a biometric check is being worked on.
   final bool isBusy;
 
+  /// Whether the tries at the PIN are used up, and the PIN is blocked for good.
+  /// Only a fingerprint or a face, if they are on, or a reset of the app opens
+  /// the app then.
+  final bool isPinBlocked;
+
   @override
-  List<Object?> get props => [biometric, retryAt, problem, isBusy];
+  List<Object?> get props => [
+    biometric,
+    retryAt,
+    problem,
+    isBusy,
+    isPinBlocked,
+  ];
 }
 
 /// The app is open.

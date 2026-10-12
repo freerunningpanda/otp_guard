@@ -1009,6 +1009,186 @@ void main() {
     });
   });
 
+  group('a PIN whose tries are used up', () {
+    const tries = AttemptPolicy.maxAttempts;
+
+    setUp(() async => h.setUpLocked());
+
+    // Wrong PINs, with the wait waited out between them, as a patient guesser
+    // would try them.
+    Future<void> useUp(int count) async {
+      for (var i = 0; i < count; i++) {
+        await h.cubit.unlockWithPin(wrongPin);
+        h.clock.advance(const Duration(hours: 2));
+      }
+    }
+
+    test('the tries before the last leave the PIN open', () async {
+      await useUp(tries - 1);
+
+      expect(h.locked.isPinBlocked, isFalse);
+    });
+
+    test('and the right PIN is still good at the last try', () async {
+      await useUp(tries - 1);
+
+      await h.cubit.unlockWithPin(testPin);
+
+      expect(h.cubit.state, isA<Unlocked>());
+    });
+
+    test('a wrong last try blocks the PIN for good', () async {
+      await useUp(tries);
+
+      expect(h.locked.isPinBlocked, isTrue);
+    });
+
+    test('with no wait to show, as time does not open it', () async {
+      await useUp(tries);
+
+      expect(h.locked.retryAt, isNull);
+    });
+
+    test('the block comes with the last wrong try, not before', () async {
+      await useUp(tries - 1);
+
+      final states = await statesDuring(
+        h.cubit,
+        () => h.cubit.unlockWithPin(wrongPin),
+      );
+
+      expect(states, [
+        const Locked(isBusy: true),
+        const Locked(problem: UnlockProblem.wrongPin, isPinBlocked: true),
+      ]);
+    });
+
+    test('the right PIN is refused, and not even checked', () async {
+      await useUp(tries);
+      var runs = 0;
+      Future<R> counting<R>(R Function() task) async {
+        runs++;
+        return task();
+      }
+
+      await h.restart(
+        hasher: PinHasher(iterations: 4, random: Random(1), compute: counting),
+      );
+      await h.cubit.unlockWithPin(testPin);
+
+      expect(h.cubit.state, isA<Locked>());
+      expect(h.locked.isPinBlocked, isTrue);
+      expect(runs, 0);
+    });
+
+    test('a try on a blocked PIN is not counted', () async {
+      await useUp(tries);
+
+      await h.cubit.unlockWithPin(wrongPin);
+      await h.cubit.unlockWithPin(testPin);
+
+      expect((await h.repository.readAttempts()).attempts, tries);
+    });
+
+    test('years do not open it', () async {
+      await useUp(tries);
+
+      h.clock.advance(const Duration(days: 3650));
+      await h.cubit.unlockWithPin(testPin);
+
+      expect(h.locked.isPinBlocked, isTrue);
+    });
+
+    test('turning the clock back does not either', () async {
+      await useUp(tries);
+
+      h.clock.advance(const Duration(days: -3650));
+      await h.cubit.unlockWithPin(testPin);
+
+      expect(h.locked.isPinBlocked, isTrue);
+    });
+
+    test('it survives a restart of the app', () async {
+      await useUp(tries);
+
+      await h.restart();
+      expect(h.locked.isPinBlocked, isTrue);
+
+      await h.cubit.unlockWithPin(testPin);
+      expect(h.locked.isPinBlocked, isTrue);
+    });
+
+    test('killing the app during the last try still blocks it', () async {
+      await useUp(tries - 1);
+      final gate = Completer<void>();
+      Future<R> stuck<R>(R Function() task) async {
+        await gate.future;
+        return task();
+      }
+
+      await h.restart(
+        hasher: PinHasher(iterations: 4, random: Random(1), compute: stuck),
+      );
+      unawaited(h.cubit.unlockWithPin(wrongPin));
+      await pumpEventQueue();
+
+      // The app dies here, before the hash was checked.
+      final next = h.newCubit();
+      await next.load();
+      addTearDown(next.close);
+
+      expect((next.state as Locked).isPinBlocked, isTrue);
+      gate.complete();
+    });
+
+    test('the biometrics still open the app, and the block ends', () async {
+      await h.cubit.unlockWithPin(testPin);
+      await h.cubit.enableBiometrics();
+      h.cubit.lock();
+      await useUp(tries);
+      expect(h.locked.isPinBlocked, isTrue);
+
+      await h.cubit.unlockWithBiometrics(testPromptTexts);
+      expect(h.cubit.state, isA<Unlocked>());
+
+      h.cubit.lock();
+      expect(h.locked.isPinBlocked, isFalse);
+      await h.cubit.unlockWithPin(testPin);
+      expect(h.cubit.state, isA<Unlocked>());
+    });
+
+    test('a biometric try that fails does not end the block', () async {
+      await h.cubit.unlockWithPin(testPin);
+      await h.cubit.enableBiometrics();
+      h.cubit.lock();
+      await useUp(tries);
+
+      h.keys.signFailsWith = 'USER_CANCELED';
+      await h.cubit.unlockWithBiometrics(testPromptTexts);
+
+      expect(h.locked.isPinBlocked, isTrue);
+    });
+
+    test('the reset ends it, and a new PIN starts clean', () async {
+      await useUp(tries);
+
+      await h.cubit.resetApp();
+      await h.cubit.setPin('654321');
+      h.cubit.lock();
+
+      expect(h.locked.isPinBlocked, isFalse);
+      await h.cubit.unlockWithPin('654321');
+      expect(h.cubit.state, isA<Unlocked>());
+    });
+
+    test('the reset is open to a blocked PIN', () async {
+      await useUp(tries);
+
+      expect(await h.cubit.resetApp(), isTrue);
+      expect(h.cubit.state, const PinNotSet());
+    });
+  });
+
   group('unlockWithBiometrics', () {
     test('a signature of the chip opens the app', () async {
       await h.setUpLockedWithBiometrics();

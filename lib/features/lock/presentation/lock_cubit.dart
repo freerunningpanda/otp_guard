@@ -144,8 +144,10 @@ class LockCubit extends Cubit<AppLockState> {
     final credential = _credential;
     if (current is! Locked || current.isBusy || credential == null) return;
 
+    // A PIN whose tries are used up is not tried at all, whatever is typed and
+    // however long ago the last try was: the right PIN is refused, too.
     final now = _clock.now();
-    if (_attempts.remaining(now) > Duration.zero) {
+    if (_attempts.isBlocked || _attempts.remaining(now) > Duration.zero) {
       emit(_locked());
       return;
     }
@@ -367,11 +369,14 @@ class LockCubit extends Cubit<AppLockState> {
   Locked _locked({UnlockProblem? problem, bool isBusy = false}) {
     final now = _clock.now();
     final wait = _attempts.remaining(now);
+    final isBlocked = _attempts.isBlocked;
     return Locked(
       biometric: _biometric.status,
-      retryAt: wait > Duration.zero ? now.add(wait) : null,
+      // A blocked PIN has no wait to show: the time does not open it.
+      retryAt: !isBlocked && wait > Duration.zero ? now.add(wait) : null,
       problem: problem,
       isBusy: isBusy,
+      isPinBlocked: isBlocked,
     );
   }
 

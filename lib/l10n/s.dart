@@ -457,6 +457,12 @@ abstract class S {
   /// **'Неверный PIN-код'**
   String get pinWrong;
 
+  /// No description provided for @pinBlocked.
+  ///
+  /// In ru, this message translates to:
+  /// **'PIN-код заблокирован: слишком много неверных попыток подряд. Войдите по отпечатку или лицу, если они включены, либо сбросьте приложение: все аккаунты будут удалены.'**
+  String get pinBlocked;
+
   /// Shown while the wait after wrong PINs is on. The time is minutes and seconds, like 0:30 or 5:00.
   ///
   /// In ru, this message translates to:

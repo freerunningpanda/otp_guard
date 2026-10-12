@@ -40,6 +40,52 @@ void main() {
     });
   });
 
+  group('the limit of attempts', () {
+    PinAttempts after(int count) {
+      var attempts = PinAttempts.none;
+      for (var i = 0; i < count; i++) {
+        attempts = attempts.afterAttempt(
+          DateTime.utc(2026).add(Duration(days: i)),
+        );
+      }
+      return attempts;
+    }
+
+    test('the PIN is good for ten tries in a row', () {
+      expect(AttemptPolicy.maxAttempts, 10);
+    });
+
+    test('the tries before the last leave the PIN open', () {
+      for (var count = 0; count < AttemptPolicy.maxAttempts; count++) {
+        expect(after(count).isBlocked, isFalse, reason: '$count tries');
+      }
+    });
+
+    test('the last try used up blocks the PIN', () {
+      expect(after(AttemptPolicy.maxAttempts).isBlocked, isTrue);
+    });
+
+    test('and it stays blocked with more tries', () {
+      expect(after(AttemptPolicy.maxAttempts + 1).isBlocked, isTrue);
+      expect(after(500).isBlocked, isTrue);
+    });
+
+    test('time does not open it', () {
+      final blocked = after(AttemptPolicy.maxAttempts);
+
+      expect(blocked.isBlocked, isTrue);
+      expect(blocked.remaining(DateTime.utc(2100)), Duration.zero);
+      expect(blocked.isBlocked, isTrue, reason: 'no clock is asked');
+    });
+
+    test('the waits before the limit are not shortened by it', () {
+      expect(
+        AttemptPolicy.delayAfter(AttemptPolicy.maxAttempts - 1),
+        const Duration(hours: 1),
+      );
+    });
+  });
+
   group('PinAttempts', () {
     test('no attempts, no wait', () {
       const attempts = PinAttempts.none;

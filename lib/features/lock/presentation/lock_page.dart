@@ -256,52 +256,64 @@ class _PinEntryState extends State<_PinEntry> {
                 ),
               ],
               const SizedBox(height: 24),
-              _Countdown(
-                retryAt: state.retryAt,
-                builder: (context, wait) {
-                  final canSubmit = !state.isBusy && wait == Duration.zero;
-                  return Column(
-                    children: [
-                      TextField(
-                        key: const Key('pin-field'),
-                        controller: _pin,
-                        enabled: canSubmit,
-                        autofocus: true,
-                        obscureText: true,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(
-                            PinPolicy.maxLength,
+              if (state.isPinBlocked)
+                // The tries are used up. There is nothing to type and no wait
+                // to show: only a fingerprint or a face, or the reset, remain.
+                Text(
+                  l10n.pinBlocked,
+                  key: const Key('pin-blocked'),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                  textAlign: TextAlign.center,
+                )
+              else
+                _Countdown(
+                  retryAt: state.retryAt,
+                  builder: (context, wait) {
+                    final canSubmit = !state.isBusy && wait == Duration.zero;
+                    return Column(
+                      children: [
+                        TextField(
+                          key: const Key('pin-field'),
+                          controller: _pin,
+                          enabled: canSubmit,
+                          autofocus: true,
+                          obscureText: true,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          keyboardType: TextInputType.number,
+                          textInputAction: TextInputAction.done,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(
+                              PinPolicy.maxLength,
+                            ),
+                          ],
+                          decoration: InputDecoration(
+                            labelText: l10n.pinLabel,
+                            errorText: _errorText(l10n, state, wait),
+                            errorMaxLines: 3,
                           ),
-                        ],
-                        decoration: InputDecoration(
-                          labelText: l10n.pinLabel,
-                          errorText: _errorText(l10n, state, wait),
-                          errorMaxLines: 3,
+                          onSubmitted: (_) => _submit(),
                         ),
-                        onSubmitted: (_) => _submit(),
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        key: const Key('unlock-button'),
-                        onPressed: canSubmit ? _submit : null,
-                        child: state.isBusy
-                            ? const SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(l10n.unlock),
-                      ),
-                    ],
-                  );
-                },
-              ),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          key: const Key('unlock-button'),
+                          onPressed: canSubmit ? _submit : null,
+                          child: state.isBusy
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(l10n.unlock),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               if (state.biometric == BiometricStatus.on) ...[
                 const SizedBox(height: 8),
                 TextButton.icon(

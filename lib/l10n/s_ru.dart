@@ -228,6 +228,10 @@ class SRu extends S {
   String get pinWrong => 'Неверный PIN-код';
 
   @override
+  String get pinBlocked =>
+      'PIN-код заблокирован: слишком много неверных попыток подряд. Войдите по отпечатку или лицу, если они включены, либо сбросьте приложение: все аккаунты будут удалены.';
+
+  @override
   String pinWait(String time) {
     return 'Слишком много попыток. Повторите через $time';
   }

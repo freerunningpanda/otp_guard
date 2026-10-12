@@ -222,6 +222,10 @@ class SEn extends S {
   String get pinWrong => 'Wrong PIN';
 
   @override
+  String get pinBlocked =>
+      'The PIN is blocked: too many wrong tries in a row. Sign in with a fingerprint or face if they are on, or reset the app, which deletes all the accounts.';
+
+  @override
   String pinWait(String time) {
     return 'Too many attempts. Try again in $time';
   }

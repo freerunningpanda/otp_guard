@@ -53,9 +53,12 @@ The lock and the blur of the plugin are two different things. The blur closes th
 | 6 | 1 minute |
 | 7 | 5 minutes |
 | 8 | 15 minutes |
-| 9 and more | 1 hour |
+| 9 | 1 hour |
+| 10 | **blocked for good** |
 
 A try is written down **before** the hash is checked and cleared only by a right PIN, so killing the app while it checks does not give a free try. The count and the time to wait are stored, so a restart does not reset them. The time comes from the `Clock` of the app. If the clock shows a time before the last try, it was turned back, and the wait counts in full again. Biometric tries are not counted: the system limits them itself.
+
+**The waits are not a limit, the block is.** An hour per try is slow, but it never ends, and a patient guesser would get through a million PINs in a lifetime. So the PIN is good for ten tries in a row. After the tenth wrong one the PIN is **blocked for good**: the field and the button are gone, the right PIN is refused and not even checked, and the lock screen says so. The block does not depend on the clock, so neither waiting nor changing the time opens it, and it is stored, so a restart does not either. Two ways out are left. A fingerprint or a face, if they are on, opens the app and clears the count. Or the reset of the app (see below), which deletes the accounts. The block does not erase anything by itself, so a child at the keypad cannot cost the user the accounts.
 
 ### Biometrics: the chip signs, not a boolean
 

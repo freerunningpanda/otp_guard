@@ -1,9 +1,19 @@
 import 'package:equatable/equatable.dart';
 
-/// How long to wait after so many attempts at the PIN.
+/// How long to wait after so many attempts at the PIN, and how many there may
+/// be at all.
 abstract final class AttemptPolicy {
   /// The attempts that cost nothing: a slip of a finger is not an attack.
   static const freeAttempts = 4;
+
+  /// How many attempts in a row, without a right PIN, the PIN is good for. The
+  /// last one is the [maxAttempts]-th; after a wrong one the PIN is blocked for
+  /// good.
+  ///
+  /// Waits alone are not a limit. An hour per attempt is slow, but it never
+  /// ends: left alone, a guesser would try a million PINs in a lifetime. The
+  /// block ends it, and does not depend on the clock.
+  static const maxAttempts = 10;
 
   /// The wait that comes with the [attempts]-th attempt in a row.
   ///
@@ -41,6 +51,12 @@ class PinAttempts extends Equatable {
   /// How many attempts in a row were not confirmed by a right PIN. An attempt
   /// is counted when it starts, not when it fails, see `LockCubit`.
   final int attempts;
+
+  /// Whether the PIN is blocked for good: the attempts are used up.
+  ///
+  /// Only a fingerprint or a face, or a reset of the app, ends it. Time does
+  /// not, so turning the clock forward does not help.
+  bool get isBlocked => attempts >= AttemptPolicy.maxAttempts;
 
   /// When the last attempt was made, in UTC.
   final DateTime? lastAttemptAt;

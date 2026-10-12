@@ -8,6 +8,7 @@ import 'package:otp_guard/core/time/clock.dart';
 import 'package:otp_guard/features/lock/data/secure_lock_repository.dart';
 import 'package:otp_guard/features/lock/domain/biometric_auth.dart';
 import 'package:otp_guard/features/lock/domain/biometric_setting.dart';
+import 'package:otp_guard/features/lock/domain/pin_attempts.dart';
 import 'package:otp_guard/features/lock/presentation/lock_cubit.dart';
 import 'package:otp_guard/features/lock/presentation/lock_state.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_cubit.dart';
@@ -380,6 +381,168 @@ void main() {
       expect(find.text(en.lockTitle), findsOneWidget);
       expect(find.text(en.unlock), findsOneWidget);
       expect(find.text(ru.lockTitle), findsNothing);
+    });
+  });
+
+  group('a PIN whose tries are used up', () {
+    final blockedText = find.byKey(const Key('pin-blocked'));
+    final forgotButton = find.byKey(const Key('forgot-pin-button'));
+
+    setUp(() async => lock.setUpLocked());
+
+    // Wrong PINs through the screen, waiting out each wait as a patient
+    // guesser would.
+    Future<void> useUpTries(WidgetTester tester, int count) async {
+      for (var i = 0; i < count; i++) {
+        await typePin(tester, '000000');
+        lock.clock.advance(const Duration(hours: 2));
+        await tester.pump();
+      }
+    }
+
+    testWidgets('the tries before the last leave the field open', (
+      tester,
+    ) async {
+      await startApp(tester);
+
+      await useUpTries(tester, AttemptPolicy.maxAttempts - 1);
+
+      expect(blockedText, findsNothing);
+      expect(pinField, findsOneWidget);
+      expect(unlockButton, findsOneWidget);
+    });
+
+    testWidgets('the last wrong try blocks the PIN: nothing to type', (
+      tester,
+    ) async {
+      await startApp(tester);
+
+      await useUpTries(tester, AttemptPolicy.maxAttempts);
+
+      expect(blockedText, findsOneWidget);
+      expect(find.text(ru.pinBlocked), findsOneWidget);
+      expect(pinField, findsNothing);
+      expect(unlockButton, findsNothing);
+    });
+
+    testWidgets('it shows no countdown, as time does not open it', (
+      tester,
+    ) async {
+      await startApp(tester);
+
+      await useUpTries(tester, AttemptPolicy.maxAttempts);
+
+      expect(find.textContaining('Повторите через'), findsNothing);
+    });
+
+    testWidgets('only the reset is left when the biometrics are off', (
+      tester,
+    ) async {
+      await startApp(tester);
+
+      await useUpTries(tester, AttemptPolicy.maxAttempts);
+
+      expect(biometricButton, findsNothing);
+      expect(forgotButton, findsOneWidget);
+    });
+
+    testWidgets('it stays blocked when the app is started again', (
+      tester,
+    ) async {
+      await startApp(tester);
+      await useUpTries(tester, AttemptPolicy.maxAttempts);
+
+      await tester.pumpWidget(const SizedBox());
+      await getIt.unregister<LockCubit>();
+      lock.clock.advance(const Duration(days: 365));
+      await startApp(tester);
+
+      expect(blockedText, findsOneWidget);
+      expect(pinField, findsNothing);
+    });
+
+    testWidgets('it is read from the storage, too', (tester) async {
+      await lock.repository.writeAttempts(
+        PinAttempts(
+          attempts: AttemptPolicy.maxAttempts,
+          lastAttemptAt: lock.clock.now(),
+          lockedUntil: lock.clock.now().add(const Duration(hours: 1)),
+        ),
+      );
+
+      await startApp(tester);
+
+      expect(blockedText, findsOneWidget);
+    });
+
+    testWidgets('the reset is the way out, and the new PIN is free', (
+      tester,
+    ) async {
+      await startApp(tester);
+      await useUpTries(tester, AttemptPolicy.maxAttempts);
+
+      await tester.tap(forgotButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('reset-confirm')));
+      await tester.pumpAndSettle();
+      expect(find.text(ru.pinSetupTitle), findsOneWidget);
+
+      await createPin(tester, '654321');
+      await tester.tap(find.byKey(const Key('offer-decline')));
+      await tester.pumpAndSettle();
+      expect(find.text(ru.emptyTitle), findsOneWidget);
+    });
+
+    testWidgets('the biometrics open the app, and the field is back', (
+      tester,
+    ) async {
+      await biometricsOn();
+      lock.keys.signFailsWith = 'USER_CANCELED';
+      await startApp(tester);
+      await useUpTries(tester, AttemptPolicy.maxAttempts);
+      expect(blockedText, findsOneWidget);
+      expect(biometricButton, findsOneWidget);
+
+      lock.keys.signFailsWith = null;
+      await tester.tap(biometricButton);
+      await tester.pumpAndSettle();
+      expect(find.text(ru.emptyTitle), findsOneWidget);
+
+      // Locked again, with the prompt closed by the user, to see the screen.
+      lock.keys.signFailsWith = 'USER_CANCELED';
+      await tester.tap(find.byKey(const Key('lock-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('menu-lock-now')));
+      await tester.pumpAndSettle();
+      expect(blockedText, findsNothing);
+      expect(pinField, findsOneWidget);
+    });
+
+    testWidgets('the text speaks English on an English device', (
+      tester,
+    ) async {
+      tester.platformDispatcher.localesTestValue = [const Locale('en')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+      await lock.repository.writeAttempts(
+        PinAttempts(
+          attempts: AttemptPolicy.maxAttempts,
+          lastAttemptAt: lock.clock.now(),
+        ),
+      );
+      final appLock = lock.newCubit();
+      getIt.registerSingleton<LockCubit>(appLock);
+
+      await tester.pumpWidget(
+        App(
+          getIt: getIt,
+          router: createRouter(lock: appLock),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.pinBlocked), findsOneWidget);
+      expect(en.pinBlocked, contains('blocked'));
+      expect(ru.pinBlocked, contains('заблокирован'));
     });
   });
 

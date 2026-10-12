@@ -69,6 +69,7 @@
   "unlock": "Unlock",
   "unlockWithBiometrics": "Sign in with fingerprint or face",
   "pinWrong": "Wrong PIN",
+  "pinBlocked": "The PIN is blocked: too many wrong tries in a row. Sign in with a fingerprint or face if they are on, or reset the app, which deletes all the accounts.",
   "pinWait": "Too many attempts. Try again in {time}",
   "lockBiometricUnavailable": "Biometric sign-in is not available now. Enter the PIN.",
   "lockBiometricFailed": "Could not confirm your identity. Enter the PIN.",

@@ -121,6 +121,7 @@
   "unlock": "Разблокировать",
   "unlockWithBiometrics": "Войти по отпечатку или лицу",
   "pinWrong": "Неверный PIN-код",
+  "pinBlocked": "PIN-код заблокирован: слишком много неверных попыток подряд. Войдите по отпечатку или лицу, если они включены, либо сбросьте приложение: все аккаунты будут удалены.",
   "pinWait": "Слишком много попыток. Повторите через {time}",
   "@pinWait": {
     "description": "Shown while the wait after wrong PINs is on. The time is minutes and seconds, like 0:30 or 5:00.",
