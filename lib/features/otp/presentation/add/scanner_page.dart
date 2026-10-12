@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:otp_guard/app/strings.dart';
+import 'package:otp_guard/app/otp_auth_failure_message.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_cubit.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/add_account_outcome.dart';
+import 'package:otp_guard/l10n/s.dart';
 
 /// Scans a QR code of an authenticator and adds the account in it.
 class ScannerPage extends StatefulWidget {
@@ -65,18 +66,18 @@ class _ScannerPageState extends State<ScannerPage> {
     switch (outcome) {
       case AccountSaved():
         messenger.showSnackBar(
-          const SnackBar(content: Text(Strings.accountAdded)),
+          SnackBar(content: Text(S.of(context).accountAdded)),
         );
         widget.onFinished();
       case AccountDuplicate():
         messenger.showSnackBar(
-          const SnackBar(content: Text(Strings.accountDuplicate)),
+          SnackBar(content: Text(S.of(context).accountDuplicate)),
         );
         widget.onFinished();
       case AccountRejected(:final failure):
-        await _showProblem(Strings.forFailure(failure));
+        await _showProblem(S.of(context).forFailure(failure));
       case AccountStorageFailed():
-        await _showProblem(Strings.saveFailed);
+        await _showProblem(S.of(context).saveFailed);
     }
   }
 
@@ -88,16 +89,16 @@ class _ScannerPageState extends State<ScannerPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        title: const Text(Strings.cannotAddTitle),
+        title: Text(S.of(dialogContext).cannotAddTitle),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text(Strings.enterManually),
+            child: Text(S.of(dialogContext).enterManually),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text(Strings.scanAgain),
+            child: Text(S.of(dialogContext).scanAgain),
           ),
         ],
       ),
@@ -114,7 +115,7 @@ class _ScannerPageState extends State<ScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(Strings.scanTitle)),
+      appBar: AppBar(title: Text(S.of(context).scanTitle)),
       body: Stack(
         children: [
           MobileScanner(
@@ -125,20 +126,20 @@ class _ScannerPageState extends State<ScannerPage> {
               onEnterManually: widget.onEnterManually,
             ),
           ),
-          const Align(
+          Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: DecoratedBox(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.black54,
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   child: Text(
-                    Strings.scanHint,
-                    style: TextStyle(color: Colors.white),
+                    S.of(context).scanHint,
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
               ),
@@ -169,6 +170,7 @@ class ScannerErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = S.of(context);
     final denied = errorCode == MobileScannerErrorCode.permissionDenied;
     return Center(
       child: Padding(
@@ -183,19 +185,19 @@ class ScannerErrorView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              denied ? Strings.cameraDeniedTitle : Strings.cameraFailedTitle,
+              denied ? l10n.cameraDeniedTitle : l10n.cameraFailedTitle,
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              denied ? Strings.cameraDeniedBody : Strings.cameraFailedBody,
+              denied ? l10n.cameraDeniedBody : l10n.cameraFailedBody,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: onEnterManually,
-              child: const Text(Strings.enterManually),
+              child: Text(l10n.enterManually),
             ),
           ],
         ),

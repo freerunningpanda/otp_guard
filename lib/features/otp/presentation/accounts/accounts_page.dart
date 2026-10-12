@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:otp_guard/app/strings.dart';
 import 'package:otp_guard/core/security/screen_security.dart';
 import 'package:otp_guard/features/otp/domain/otp_account.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_cubit.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_state.dart';
 import 'package:otp_guard/features/otp/presentation/security/screen_security_cubit.dart';
 import 'package:otp_guard/features/otp/presentation/widgets/account_tile.dart';
+import 'package:otp_guard/l10n/s.dart';
 
 /// The main screen: the accounts with their codes.
 ///
@@ -70,17 +70,17 @@ class _AccountsView extends StatelessWidget {
           current.screenshotCount > previous.screenshotCount,
       listener: (context, state) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(Strings.screenshotTaken)),
+          SnackBar(content: Text(S.of(context).screenshotTaken)),
         );
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(Strings.appTitle),
+          title: Text(S.of(context).appTitle),
           actions: [
             if (onOpenKeyDemo != null)
               IconButton(
                 icon: const Icon(Icons.bug_report_outlined),
-                tooltip: Strings.deviceKeyDemo,
+                tooltip: S.of(context).deviceKeyDemo,
                 onPressed: onOpenKeyDemo,
               ),
           ],
@@ -89,7 +89,7 @@ class _AccountsView extends StatelessWidget {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => _showAddOptions(context),
           icon: const Icon(Icons.add),
-          label: const Text(Strings.addAccount),
+          label: Text(S.of(context).addAccount),
         ),
       ),
     );
@@ -105,7 +105,7 @@ class _AccountsView extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.qr_code_scanner),
-                title: const Text(Strings.scanQr),
+                title: Text(S.of(sheetContext).scanQr),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   onScan();
@@ -113,7 +113,7 @@ class _AccountsView extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.keyboard_outlined),
-                title: const Text(Strings.enterManually),
+                title: Text(S.of(sheetContext).enterManually),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   onEnterManually();
@@ -142,12 +142,12 @@ class _AccountsBody extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(Strings.loadFailed),
+                Text(S.of(context).loadFailed),
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () =>
                       unawaited(context.read<AccountsCubit>().load()),
-                  child: const Text(Strings.retry),
+                  child: Text(S.of(context).retry),
                 ),
               ],
             ),
@@ -200,28 +200,28 @@ class _AccountsList extends StatelessWidget {
   Future<void> _confirmDelete(BuildContext context, OtpAccount account) async {
     final cubit = context.read<AccountsCubit>();
     final messenger = ScaffoldMessenger.of(context);
+    // Taken before the first await: the context may be gone after it.
+    final l10n = S.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text(Strings.deleteTitle),
-        content: Text(Strings.deleteBody(account.name)),
+        title: Text(l10n.deleteTitle),
+        content: Text(l10n.deleteBody(account.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text(Strings.cancel),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text(Strings.delete),
+            child: Text(l10n.delete),
           ),
         ],
       ),
     );
     if (confirmed != true) return;
     if (!await cubit.remove(account.id)) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text(Strings.deleteFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.deleteFailed)));
     }
   }
 }
@@ -242,11 +242,11 @@ class _EmptyView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            Strings.emptyTitle,
+            S.of(context).emptyTitle,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          const Text(Strings.emptyHint, textAlign: TextAlign.center),
+          Text(S.of(context).emptyHint, textAlign: TextAlign.center),
         ],
       ),
     );
@@ -265,7 +265,7 @@ class _ProtectionFailedBanner extends StatelessWidget {
       child: ListTile(
         leading: Icon(Icons.gpp_maybe, color: colors.onErrorContainer),
         title: Text(
-          Strings.protectionFailedBanner,
+          S.of(context).protectionFailedBanner,
           style: TextStyle(color: colors.onErrorContainer),
         ),
       ),
@@ -285,7 +285,7 @@ class _RecordingBanner extends StatelessWidget {
       child: ListTile(
         leading: Icon(Icons.videocam, color: colors.onErrorContainer),
         title: Text(
-          Strings.recordingBanner,
+          S.of(context).recordingBanner,
           style: TextStyle(color: colors.onErrorContainer),
         ),
       ),
@@ -307,12 +307,12 @@ class _UnreadableBanner extends StatelessWidget {
       child: ListTile(
         leading: Icon(Icons.warning_amber, color: colors.onTertiaryContainer),
         title: Text(
-          Strings.unreadableWarning(count),
+          S.of(context).unreadableWarning(count),
           style: TextStyle(color: colors.onTertiaryContainer),
         ),
         trailing: TextButton(
           onPressed: () => unawaited(_confirmDelete(context)),
-          child: const Text(Strings.deleteUnreadable),
+          child: Text(S.of(context).deleteUnreadable),
         ),
       ),
     );
@@ -321,28 +321,28 @@ class _UnreadableBanner extends StatelessWidget {
   Future<void> _confirmDelete(BuildContext context) async {
     final cubit = context.read<AccountsCubit>();
     final messenger = ScaffoldMessenger.of(context);
+    // Taken before the first await: the context may be gone after it.
+    final l10n = S.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text(Strings.deleteUnreadableTitle),
-        content: const Text(Strings.deleteUnreadableBody),
+        title: Text(l10n.deleteUnreadableTitle),
+        content: Text(l10n.deleteUnreadableBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text(Strings.cancel),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text(Strings.delete),
+            child: Text(l10n.delete),
           ),
         ],
       ),
     );
     if (confirmed != true) return;
     if (!await cubit.removeUnreadable()) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text(Strings.deleteFailed)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.deleteFailed)));
     }
   }
 }

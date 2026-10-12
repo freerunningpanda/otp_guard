@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:otp_guard/app/strings.dart';
 import 'package:otp_guard/core/time/clock.dart';
 import 'package:otp_guard/features/otp/domain/otp_account.dart';
 import 'package:otp_guard/features/otp/domain/totp.dart';
 import 'package:otp_guard/features/otp/presentation/widgets/code_format.dart';
+import 'package:otp_guard/l10n/s.dart';
 
 /// One row of the list: the code of an account and the time it has left.
 ///
@@ -104,7 +104,7 @@ class _AccountTileState extends State<AccountTile> {
             ),
           ),
           title: Text(
-            widget.hideCode ? Strings.hiddenCode : _codeAt(now),
+            widget.hideCode ? hiddenCode : _codeAt(now),
             key: Key('code-${account.id}'),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontFeatures: const [FontFeature.tabularFigures()],
@@ -122,7 +122,7 @@ class _AccountTileState extends State<AccountTile> {
               PopupMenuItem<void>(
                 key: Key('delete-${account.id}'),
                 onTap: widget.onDelete,
-                child: const Text(Strings.delete),
+                child: Text(S.of(context).delete),
               ),
             ],
           ),

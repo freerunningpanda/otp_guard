@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:otp_guard/app/strings.dart';
 import 'package:otp_guard/core/security/screen_security.dart';
 import 'package:otp_guard/core/time/clock.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_cubit.dart';
+import 'package:otp_guard/l10n/s.dart';
 
 /// The root of the app: it hands the dependencies down the tree and starts the
 /// router.
@@ -38,7 +38,9 @@ class App extends StatelessWidget {
           return cubit;
         },
         child: MaterialApp.router(
-          title: Strings.appTitle,
+          onGenerateTitle: (context) => S.of(context).appTitle,
+          localizationsDelegates: S.localizationsDelegates,
+          supportedLocales: S.supportedLocales,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           ),

@@ -8,6 +8,7 @@ import 'package:otp_guard/features/otp/presentation/accounts/accounts_cubit.dart
 import 'fake_account_repository.dart';
 import 'fake_clock.dart';
 import 'fake_screen_security.dart';
+import 'localizations.dart';
 
 /// What a page under test is given, and what a test can look at afterwards.
 class TestEnvironment {
@@ -39,7 +40,7 @@ class TestEnvironment {
         ],
         child: BlocProvider<AccountsCubit>.value(
           value: cubit,
-          child: MaterialApp(home: page),
+          child: localizedApp(home: page),
         ),
       ),
     );

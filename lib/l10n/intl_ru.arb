@@ -1,0 +1,110 @@
+{
+  "@@locale": "ru",
+
+  "appTitle": "Аутентификатор",
+  "@appTitle": {
+    "description": "The title of the app, in the task switcher."
+  },
+
+  "emptyTitle": "Аккаунтов пока нет",
+  "emptyHint": "Добавьте первый аккаунт: отсканируйте QR-код сайта или введите секрет вручную.",
+  "addAccount": "Добавить аккаунт",
+  "loadFailed": "Не удалось загрузить аккаунты",
+  "retry": "Повторить",
+  "deviceKeyDemo": "Проверка ключа устройства",
+  "@deviceKeyDemo": {
+    "description": "The tooltip of the button that opens the debug page. Debug builds only."
+  },
+
+  "unreadableWarning": "{count, plural, one{Не удалось прочитать {count} запись. Она не показана, но осталась в хранилище.} few{Не удалось прочитать {count} записи. Они не показаны, но остались в хранилище.} many{Не удалось прочитать {count} записей. Они не показаны, но остались в хранилище.} other{Не удалось прочитать {count} записи. Они не показаны, но остались в хранилище.}}",
+  "@unreadableWarning": {
+    "description": "A warning that some stored accounts could not be read.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "deleteUnreadable": "Удалить",
+  "deleteUnreadableTitle": "Удалить нечитаемые записи?",
+  "deleteUnreadableBody": "Записи будут удалены без возможности восстановления.",
+
+  "deleteTitle": "Удалить аккаунт?",
+  "deleteBody": "Коды для «{name}» перестанут показываться. Если вход по ним на сайте включён, вы можете потерять доступ: сначала отключите двухфакторную защиту на сайте.",
+  "@deleteBody": {
+    "description": "Asks to confirm that an account is deleted.",
+    "placeholders": {
+      "name": {"type": "String", "example": "alex@example.com"}
+    }
+  },
+  "cancel": "Отмена",
+  "delete": "Удалить",
+  "deleteFailed": "Не удалось удалить. Попробуйте ещё раз.",
+
+  "recordingBanner": "Идёт запись экрана. Коды скрыты, пока она не закончится.",
+  "screenshotTaken": "Сделан снимок экрана. Коды на нём могли попасть в кадр.",
+  "protectionFailedBanner": "Защита экрана не включилась. Снимки, запись экрана и превью в списке приложений не защищены: коды могут попасть в кадр.",
+  "@protectionFailedBanner": {
+    "description": "A warning that the native screen protection could not be turned on, so the codes can leak through a screenshot or a recording."
+  },
+
+  "scanQr": "Сканировать QR-код",
+  "enterManually": "Ввести вручную",
+  "accountAdded": "Аккаунт добавлен",
+  "accountDuplicate": "Этот аккаунт уже добавлен",
+  "saveFailed": "Не удалось сохранить аккаунт. Попробуйте ещё раз.",
+
+  "scanTitle": "Сканирование QR-кода",
+  "scanHint": "Наведите камеру на QR-код сайта",
+  "cameraDeniedTitle": "Нет доступа к камере",
+  "cameraDeniedBody": "Разрешите доступ к камере в настройках телефона или введите секрет вручную.",
+  "cameraFailedTitle": "Не удалось запустить камеру",
+  "cameraFailedBody": "Попробуйте ещё раз или введите секрет вручную.",
+  "scanAgain": "Сканировать снова",
+  "cannotAddTitle": "Не удалось добавить аккаунт",
+
+  "manualTitle": "Новый аккаунт",
+  "issuerLabel": "Сервис (необязательно)",
+  "nameLabel": "Аккаунт",
+  "secretLabel": "Секрет (Base32)",
+  "save": "Сохранить",
+  "nameRequired": "Введите название аккаунта",
+  "secretRequired": "Введите секрет",
+  "secretInvalid": "Секрет должен быть в формате Base32: буквы A–Z и цифры 2–7",
+
+  "failureNotAnOtpAuthUri": "Это не QR-код аутентификатора. Нужен код со ссылкой otpauth://.",
+  "failureHotp": "Счётчиковые коды (HOTP) не поддерживаются. Приложение работает с кодами по времени (TOTP).",
+  "failureUnsupportedType": "Тип кодов «{type}» не поддерживается. Приложение работает с кодами по времени (TOTP).",
+  "@failureUnsupportedType": {
+    "placeholders": {
+      "type": {"type": "String", "example": "steam"}
+    }
+  },
+  "failureMissingLabel": "В QR-коде нет названия аккаунта.",
+  "failureMissingSecret": "В QR-коде нет секрета.",
+  "failureInvalidSecret": "Секрет в QR-коде повреждён: он не в формате Base32.",
+  "failureInvalidAlgorithm": "Алгоритм «{value}» не поддерживается. Допустимы SHA1, SHA256 и SHA512.",
+  "@failureInvalidAlgorithm": {
+    "placeholders": {
+      "value": {"type": "String", "example": "MD5"}
+    }
+  },
+  "failureInvalidDigits": "Недопустимое число цифр: «{value}». Допустимы 6, 7 и 8.",
+  "@failureInvalidDigits": {
+    "placeholders": {
+      "value": {"type": "String", "example": "5"}
+    }
+  },
+  "failureInvalidPeriod": "Недопустимый период: «{value}». Нужно целое число секунд больше нуля.",
+  "@failureInvalidPeriod": {
+    "placeholders": {
+      "value": {"type": "String", "example": "0"}
+    }
+  },
+  "failureInvalidParameter": "Недопустимое значение «{value}» параметра {name}.",
+  "@failureInvalidParameter": {
+    "description": "A parameter of the otpauth link that is not one of the known ones, or has a wrong value.",
+    "placeholders": {
+      "name": {"type": "String", "example": "color"},
+      "value": {"type": "String", "example": "red"}
+    }
+  }
+}

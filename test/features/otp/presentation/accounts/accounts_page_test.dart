@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:otp_guard/app/strings.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_page.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_state.dart';
+import 'package:otp_guard/features/otp/presentation/widgets/code_format.dart';
 
 import '../../../../support/accounts.dart';
 import '../../../../support/fake_account_repository.dart';
 import '../../../../support/fake_clock.dart';
+import '../../../../support/localizations.dart';
 import '../../../../support/pump_app.dart';
 
 DateTime atMs(int milliseconds) =>
@@ -43,7 +44,7 @@ void main() {
       await env.pump(tester, page());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.text(Strings.emptyTitle), findsNothing);
+      expect(find.text(ru.emptyTitle), findsNothing);
     });
 
     testWidgets('shows the empty state when there are no accounts', (
@@ -53,8 +54,8 @@ void main() {
       await env.pump(tester, page());
       await env.load(tester);
 
-      expect(find.text(Strings.emptyTitle), findsOneWidget);
-      expect(find.text(Strings.emptyHint), findsOneWidget);
+      expect(find.text(ru.emptyTitle), findsOneWidget);
+      expect(find.text(ru.emptyHint), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
@@ -68,15 +69,15 @@ void main() {
       await env.pump(tester, page());
       await env.load(tester);
 
-      expect(find.text(Strings.loadFailed), findsOneWidget);
+      expect(find.text(ru.loadFailed), findsOneWidget);
       expect(find.byKey(const Key('code-id-1')), findsNothing);
 
       env.repository.failReading = false;
-      await tester.tap(find.text(Strings.retry));
+      await tester.tap(find.text(ru.retry));
       await tester.pump();
       await tester.pump();
 
-      expect(find.text(Strings.loadFailed), findsNothing);
+      expect(find.text(ru.loadFailed), findsNothing);
       expect(find.byKey(const Key('code-id-1')), findsOneWidget);
     });
 
@@ -92,7 +93,7 @@ void main() {
       await env.pump(tester, page());
       await env.load(tester);
 
-      expect(find.text(Strings.unreadableWarning(2)), findsOneWidget);
+      expect(find.text(ru.unreadableWarning(2)), findsOneWidget);
       // The accounts that can be read are still there.
       expect(find.byKey(const Key('code-id-1')), findsOneWidget);
     });
@@ -332,7 +333,7 @@ void main() {
         await env.load(tester);
         await tester.pump();
 
-        expect(find.text(Strings.protectionFailedBanner), findsOneWidget);
+        expect(find.text(ru.protectionFailedBanner), findsOneWidget);
       });
 
       testWidgets('still shows the codes', (tester) async {
@@ -355,8 +356,8 @@ void main() {
         await env.load(tester);
         await tester.pump();
 
-        expect(find.text(Strings.protectionFailedBanner), findsOneWidget);
-        expect(find.text(Strings.emptyTitle), findsOneWidget);
+        expect(find.text(ru.protectionFailedBanner), findsOneWidget);
+        expect(find.text(ru.emptyTitle), findsOneWidget);
       });
 
       testWidgets('still hides the codes while the screen is recorded', (
@@ -375,9 +376,9 @@ void main() {
         await tester.pump();
         await tester.pump();
 
-        expect(textOf(tester, const Key('code-id-1')), Strings.hiddenCode);
-        expect(find.text(Strings.protectionFailedBanner), findsOneWidget);
-        expect(find.text(Strings.recordingBanner), findsOneWidget);
+        expect(textOf(tester, const Key('code-id-1')), hiddenCode);
+        expect(find.text(ru.protectionFailedBanner), findsOneWidget);
+        expect(find.text(ru.recordingBanner), findsOneWidget);
       });
     });
 
@@ -390,7 +391,7 @@ void main() {
         await env.load(tester);
         await tester.pump();
 
-        expect(find.text(Strings.protectionFailedBanner), findsNothing);
+        expect(find.text(ru.protectionFailedBanner), findsNothing);
       });
 
       testWidgets('says nothing while the platform has not answered', (
@@ -405,12 +406,12 @@ void main() {
         await env.load(tester);
         await tester.pump();
 
-        expect(find.text(Strings.protectionFailedBanner), findsNothing);
+        expect(find.text(ru.protectionFailedBanner), findsNothing);
 
         answer.complete();
         await tester.pump();
         await tester.pump();
-        expect(find.text(Strings.protectionFailedBanner), findsNothing);
+        expect(find.text(ru.protectionFailedBanner), findsNothing);
       });
     });
 
@@ -427,16 +428,16 @@ void main() {
       await env.pump(tester, page());
       await env.load(tester);
       expect(textOf(tester, const Key('code-id-1')), '287 082');
-      expect(find.text(Strings.recordingBanner), findsNothing);
+      expect(find.text(ru.recordingBanner), findsNothing);
 
       env.security.recording(isRecording: true);
       await tester.pump();
       await tester.pump();
 
-      expect(textOf(tester, const Key('code-id-1')), Strings.hiddenCode);
-      expect(textOf(tester, const Key('code-id-2')), Strings.hiddenCode);
+      expect(textOf(tester, const Key('code-id-1')), hiddenCode);
+      expect(textOf(tester, const Key('code-id-2')), hiddenCode);
       expect(find.textContaining('287'), findsNothing);
-      expect(find.text(Strings.recordingBanner), findsOneWidget);
+      expect(find.text(ru.recordingBanner), findsOneWidget);
     });
 
     testWidgets('keeps the codes hidden while the clock ticks', (tester) async {
@@ -452,7 +453,7 @@ void main() {
       env.clock.advance(const Duration(seconds: 1));
       await tester.pump();
 
-      expect(textOf(tester, const Key('code-id-1')), Strings.hiddenCode);
+      expect(textOf(tester, const Key('code-id-1')), hiddenCode);
       // The countdown goes on: only the code is hidden.
       expect(textOf(tester, const Key('seconds-id-1')), '30');
     });
@@ -475,7 +476,7 @@ void main() {
       await tester.pump();
 
       expect(textOf(tester, const Key('code-id-1')), '287 082');
-      expect(find.text(Strings.recordingBanner), findsNothing);
+      expect(find.text(ru.recordingBanner), findsNothing);
     });
 
     testWidgets('hides the codes if the recording began before the page', (
@@ -492,7 +493,7 @@ void main() {
       await env.load(tester);
       await tester.pump();
 
-      expect(textOf(tester, const Key('code-id-1')), Strings.hiddenCode);
+      expect(textOf(tester, const Key('code-id-1')), hiddenCode);
     });
 
     testWidgets('tells about a screenshot, each time', (tester) async {
@@ -503,15 +504,15 @@ void main() {
       env.security.screenshot();
       await tester.pump();
       await tester.pump();
-      expect(find.text(Strings.screenshotTaken), findsOneWidget);
+      expect(find.text(ru.screenshotTaken), findsOneWidget);
 
       await letSnackBarGo(tester);
-      expect(find.text(Strings.screenshotTaken), findsNothing);
+      expect(find.text(ru.screenshotTaken), findsNothing);
 
       env.security.screenshot();
       await tester.pump();
       await tester.pump();
-      expect(find.text(Strings.screenshotTaken), findsOneWidget);
+      expect(find.text(ru.screenshotTaken), findsOneWidget);
     });
 
     testWidgets('a screenshot does not hide the codes', (tester) async {
@@ -551,8 +552,8 @@ void main() {
 
       await chooseDelete(tester);
 
-      expect(find.text(Strings.deleteTitle), findsOneWidget);
-      expect(find.text(Strings.deleteBody('alex@example.com')), findsOneWidget);
+      expect(find.text(ru.deleteTitle), findsOneWidget);
+      expect(find.text(ru.deleteBody('alex@example.com')), findsOneWidget);
       expect(env.repository.removed, isEmpty);
     });
 
@@ -560,19 +561,19 @@ void main() {
       final env = await openWithOneAccount(tester);
 
       await chooseDelete(tester);
-      await tester.tap(find.widgetWithText(TextButton, Strings.delete));
+      await tester.tap(find.widgetWithText(TextButton, ru.delete));
       await tester.pumpAndSettle();
 
       expect(env.repository.removed, ['id-1']);
       expect(find.byKey(const Key('code-id-1')), findsNothing);
-      expect(find.text(Strings.emptyTitle), findsOneWidget);
+      expect(find.text(ru.emptyTitle), findsOneWidget);
     });
 
     testWidgets('keeps the account when cancelled', (tester) async {
       final env = await openWithOneAccount(tester);
 
       await chooseDelete(tester);
-      await tester.tap(find.text(Strings.cancel));
+      await tester.tap(find.text(ru.cancel));
       await tester.pumpAndSettle();
 
       expect(env.repository.removed, isEmpty);
@@ -584,10 +585,10 @@ void main() {
       env.repository.failRemoving = true;
 
       await chooseDelete(tester);
-      await tester.tap(find.widgetWithText(TextButton, Strings.delete));
+      await tester.tap(find.widgetWithText(TextButton, ru.delete));
       await tester.pumpAndSettle();
 
-      expect(find.text(Strings.deleteFailed), findsOneWidget);
+      expect(find.text(ru.deleteFailed), findsOneWidget);
       expect(find.byKey(const Key('code-id-1')), findsOneWidget);
     });
 
@@ -601,19 +602,19 @@ void main() {
       await env.pump(tester, page());
       await env.load(tester);
 
-      await tester.tap(find.text(Strings.deleteUnreadable));
+      await tester.tap(find.text(ru.deleteUnreadable));
       await tester.pumpAndSettle();
-      expect(find.text(Strings.deleteUnreadableTitle), findsOneWidget);
+      expect(find.text(ru.deleteUnreadableTitle), findsOneWidget);
       await tester.tap(
         find.descendant(
           of: find.byType(AlertDialog),
-          matching: find.widgetWithText(TextButton, Strings.delete),
+          matching: find.widgetWithText(TextButton, ru.delete),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(env.repository.removed, ['a', 'b']);
-      expect(find.text(Strings.unreadableWarning(2)), findsNothing);
+      expect(find.text(ru.unreadableWarning(2)), findsNothing);
       expect(find.byKey(const Key('code-id-1')), findsOneWidget);
     });
   });
@@ -624,11 +625,11 @@ void main() {
       await env.pump(tester, page());
       await env.load(tester);
 
-      await tester.tap(find.text(Strings.addAccount));
+      await tester.tap(find.text(ru.addAccount));
       await tester.pumpAndSettle();
 
-      expect(find.text(Strings.scanQr), findsOneWidget);
-      expect(find.text(Strings.enterManually), findsOneWidget);
+      expect(find.text(ru.scanQr), findsOneWidget);
+      expect(find.text(ru.enterManually), findsOneWidget);
     });
 
     testWidgets('opens the scanner', (tester) async {
@@ -637,13 +638,13 @@ void main() {
       await env.pump(tester, page(onScan: () => scanned++));
       await env.load(tester);
 
-      await tester.tap(find.text(Strings.addAccount));
+      await tester.tap(find.text(ru.addAccount));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(Strings.scanQr));
+      await tester.tap(find.text(ru.scanQr));
       await tester.pumpAndSettle();
 
       expect(scanned, 1);
-      expect(find.text(Strings.scanQr), findsNothing);
+      expect(find.text(ru.scanQr), findsNothing);
     });
 
     testWidgets('opens the form for typing', (tester) async {
@@ -652,9 +653,9 @@ void main() {
       await env.pump(tester, page(onManual: () => typed++));
       await env.load(tester);
 
-      await tester.tap(find.text(Strings.addAccount));
+      await tester.tap(find.text(ru.addAccount));
       await tester.pumpAndSettle();
-      await tester.tap(find.text(Strings.enterManually));
+      await tester.tap(find.text(ru.enterManually));
       await tester.pumpAndSettle();
 
       expect(typed, 1);

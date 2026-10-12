@@ -32,6 +32,10 @@ otp_guard/
 
 The native work lives in [`packages/device_security`](packages/device_security/README.md), a separate plugin with its own API, so it can be reused by other apps. It talks to the platforms through a `MethodChannel` for commands, an `EventChannel` for the stream of security events, and a [Pigeon](https://pub.dev/packages/pigeon)-generated API for the device key, so the key calls are type-checked on Dart, Kotlin and Swift.
 
+## Localization
+
+The interface is in Russian and English and follows the language of the device; any other language gets English. The texts are in [`lib/l10n`](lib/l10n): `intl_ru.arb` is the template and `intl_en.arb` the translation. `flutter pub get` generates the class `S` from them (see `l10n.yaml`), and the generated files are committed. A text is read as `S.of(context).name`. To add a language, add `intl_<code>.arb` with the same keys.
+
 ## Roadmap
 
 - [x] Project and plugin scaffold, strict linting

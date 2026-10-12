@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:otp_guard/app/strings.dart';
 import 'package:otp_guard/core/time/clock.dart';
 import 'package:otp_guard/features/otp/domain/otp_account.dart';
 import 'package:otp_guard/features/otp/presentation/widgets/account_tile.dart';
+import 'package:otp_guard/features/otp/presentation/widgets/code_format.dart';
 
 import '../../../../support/accounts.dart';
 import '../../../../support/fake_clock.dart';
+import '../../../../support/localizations.dart';
 
 String codeShown(WidgetTester tester) =>
     tester.widget<Text>(find.byKey(const Key('code-id-1'))).data!;
@@ -21,7 +22,7 @@ Future<void> pumpTile(
   return tester.pumpWidget(
     RepositoryProvider<Clock>.value(
       value: clock,
-      child: MaterialApp(
+      child: localizedApp(
         home: Scaffold(
           body: AccountTile(
             account: account,
@@ -84,7 +85,7 @@ void main() {
       account: testAccount(),
       hideCode: true,
     );
-    expect(codeShown(tester), Strings.hiddenCode);
+    expect(codeShown(tester), hiddenCode);
 
     await pumpTile(tester, clock: clock, account: testAccount());
 

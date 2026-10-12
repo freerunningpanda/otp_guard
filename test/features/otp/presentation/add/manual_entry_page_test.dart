@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:otp_guard/app/strings.dart';
 import 'package:otp_guard/features/otp/presentation/add/manual_entry_page.dart';
 
 import '../../../../support/accounts.dart';
 import '../../../../support/fake_account_repository.dart';
+import '../../../../support/localizations.dart';
 import '../../../../support/pump_app.dart';
 
 Finder field(String label) => find.widgetWithText(TextField, label);
@@ -15,13 +15,13 @@ Future<void> fill(
   String name = '',
   String secret = '',
 }) async {
-  await tester.enterText(field(Strings.issuerLabel), issuer);
-  await tester.enterText(field(Strings.nameLabel), name);
-  await tester.enterText(field(Strings.secretLabel), secret);
+  await tester.enterText(field(ru.issuerLabel), issuer);
+  await tester.enterText(field(ru.nameLabel), name);
+  await tester.enterText(field(ru.secretLabel), secret);
 }
 
 Future<void> save(WidgetTester tester) async {
-  await tester.tap(find.text(Strings.save));
+  await tester.tap(find.text(ru.save));
   await tester.pump();
   await tester.pump();
 }
@@ -41,9 +41,9 @@ void main() {
   testWidgets('shows the three fields', (tester) async {
     await open(tester);
 
-    expect(field(Strings.issuerLabel), findsOneWidget);
-    expect(field(Strings.nameLabel), findsOneWidget);
-    expect(field(Strings.secretLabel), findsOneWidget);
+    expect(field(ru.issuerLabel), findsOneWidget);
+    expect(field(ru.nameLabel), findsOneWidget);
+    expect(field(ru.secretLabel), findsOneWidget);
   });
 
   testWidgets('saves what was typed and closes', (tester) async {
@@ -61,7 +61,7 @@ void main() {
     final saved = env.repository.accounts.single;
     expect(saved.issuer, 'GitHub');
     expect(saved.name, 'alex@example.com');
-    expect(find.text(Strings.accountAdded), findsOneWidget);
+    expect(find.text(ru.accountAdded), findsOneWidget);
   });
 
   testWidgets('the issuer is optional', (tester) async {
@@ -80,8 +80,8 @@ void main() {
     await fill(tester, secret: 'JBSWY3DPEHPK3PXP');
     await save(tester);
 
-    expect(find.text(Strings.nameRequired), findsOneWidget);
-    expect(find.text(Strings.secretRequired), findsNothing);
+    expect(find.text(ru.nameRequired), findsOneWidget);
+    expect(find.text(ru.secretRequired), findsNothing);
     expect(env.repository.added, isEmpty);
     expect(finished, 0);
   });
@@ -92,8 +92,8 @@ void main() {
     await fill(tester, name: 'alex');
     await save(tester);
 
-    expect(find.text(Strings.secretRequired), findsOneWidget);
-    expect(find.text(Strings.nameRequired), findsNothing);
+    expect(find.text(ru.secretRequired), findsOneWidget);
+    expect(find.text(ru.nameRequired), findsNothing);
     expect(finished, 0);
   });
 
@@ -103,7 +103,7 @@ void main() {
     await fill(tester, name: 'alex', secret: 'abc1!');
     await save(tester);
 
-    expect(find.text(Strings.secretInvalid), findsOneWidget);
+    expect(find.text(ru.secretInvalid), findsOneWidget);
     expect(env.repository.added, isEmpty);
     expect(finished, 0);
   });
@@ -114,12 +114,12 @@ void main() {
     await open(tester);
     await fill(tester, name: 'alex', secret: 'abc1!');
     await save(tester);
-    expect(find.text(Strings.secretInvalid), findsOneWidget);
+    expect(find.text(ru.secretInvalid), findsOneWidget);
 
-    await tester.enterText(field(Strings.secretLabel), 'JBSWY3DPEHPK3PXP');
+    await tester.enterText(field(ru.secretLabel), 'JBSWY3DPEHPK3PXP');
     await save(tester);
 
-    expect(find.text(Strings.secretInvalid), findsNothing);
+    expect(find.text(ru.secretInvalid), findsNothing);
     expect(finished, 1);
   });
 
@@ -143,8 +143,8 @@ void main() {
     await fill(tester, name: 'alex', secret: 'JBSWY3DPEHPK3PXP');
     await save(tester);
 
-    expect(find.text(Strings.accountDuplicate), findsOneWidget);
-    expect(find.text(Strings.accountAdded), findsNothing);
+    expect(find.text(ru.accountDuplicate), findsOneWidget);
+    expect(find.text(ru.accountAdded), findsNothing);
     expect(env.repository.accounts, hasLength(1));
     expect(finished, 1);
   });
@@ -162,7 +162,7 @@ void main() {
     await fill(tester, name: 'alex', secret: 'JBSWY3DPEHPK3PXP');
     await save(tester);
 
-    expect(find.text(Strings.saveFailed), findsOneWidget);
+    expect(find.text(ru.saveFailed), findsOneWidget);
     expect(finished, 0);
     // What was typed is still there, to try again.
     expect(find.text('alex'), findsOneWidget);

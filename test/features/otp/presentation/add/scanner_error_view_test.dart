@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:otp_guard/app/strings.dart';
 import 'package:otp_guard/features/otp/presentation/add/scanner_page.dart';
+
+import '../../../../support/localizations.dart';
 
 Future<void> pumpView(
   WidgetTester tester,
@@ -10,7 +11,7 @@ Future<void> pumpView(
   VoidCallback onEnterManually,
 ) {
   return tester.pumpWidget(
-    MaterialApp(
+    localizedApp(
       home: Scaffold(
         body: ScannerErrorView(
           errorCode: code,
@@ -32,11 +33,11 @@ void main() {
       () => typed++,
     );
 
-    expect(find.text(Strings.cameraDeniedTitle), findsOneWidget);
-    expect(find.text(Strings.cameraDeniedBody), findsOneWidget);
-    expect(find.text(Strings.cameraFailedTitle), findsNothing);
+    expect(find.text(ru.cameraDeniedTitle), findsOneWidget);
+    expect(find.text(ru.cameraDeniedBody), findsOneWidget);
+    expect(find.text(ru.cameraFailedTitle), findsNothing);
 
-    await tester.tap(find.text(Strings.enterManually));
+    await tester.tap(find.text(ru.enterManually));
 
     expect(typed, 1);
   });
@@ -51,10 +52,10 @@ void main() {
       () => typed++,
     );
 
-    expect(find.text(Strings.cameraFailedTitle), findsOneWidget);
-    expect(find.text(Strings.cameraDeniedTitle), findsNothing);
+    expect(find.text(ru.cameraFailedTitle), findsOneWidget);
+    expect(find.text(ru.cameraDeniedTitle), findsNothing);
 
-    await tester.tap(find.text(Strings.enterManually));
+    await tester.tap(find.text(ru.enterManually));
 
     expect(typed, 1);
   });
@@ -64,6 +65,6 @@ void main() {
   ) async {
     await pumpView(tester, MobileScannerErrorCode.unsupported, () {});
 
-    expect(find.text(Strings.enterManually), findsOneWidget);
+    expect(find.text(ru.enterManually), findsOneWidget);
   });
 }

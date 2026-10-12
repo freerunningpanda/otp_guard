@@ -1,0 +1,61 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Authenticator",
+  "emptyTitle": "No accounts yet",
+  "emptyHint": "Add your first account: scan the QR code of a website or type the secret in by hand.",
+  "addAccount": "Add account",
+  "loadFailed": "Could not load the accounts",
+  "retry": "Retry",
+  "deviceKeyDemo": "Device key check",
+
+  "unreadableWarning": "{count, plural, one{{count} entry could not be read. It is not shown but is still in the storage.} other{{count} entries could not be read. They are not shown but are still in the storage.}}",
+  "deleteUnreadable": "Delete",
+  "deleteUnreadableTitle": "Delete the unreadable entries?",
+  "deleteUnreadableBody": "The entries will be deleted for good.",
+
+  "deleteTitle": "Delete the account?",
+  "deleteBody": "The codes for “{name}” will no longer be shown. If signing in with them is turned on for the website, you may lose access: turn two-factor authentication off on the website first.",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "deleteFailed": "Could not delete. Try again.",
+
+  "recordingBanner": "The screen is being recorded. The codes are hidden until it ends.",
+  "screenshotTaken": "A screenshot was taken. The codes may be in it.",
+  "protectionFailedBanner": "Screen protection could not be turned on. Screenshots, screen recording and the app preview in the task switcher are not protected: the codes may leak.",
+
+  "scanQr": "Scan a QR code",
+  "enterManually": "Enter manually",
+  "accountAdded": "Account added",
+  "accountDuplicate": "This account is already added",
+  "saveFailed": "Could not save the account. Try again.",
+
+  "scanTitle": "Scan a QR code",
+  "scanHint": "Point the camera at the QR code of a website",
+  "cameraDeniedTitle": "No access to the camera",
+  "cameraDeniedBody": "Allow access to the camera in the phone settings or enter the secret manually.",
+  "cameraFailedTitle": "Could not start the camera",
+  "cameraFailedBody": "Try again or enter the secret manually.",
+  "scanAgain": "Scan again",
+  "cannotAddTitle": "Could not add the account",
+
+  "manualTitle": "New account",
+  "issuerLabel": "Service (optional)",
+  "nameLabel": "Account",
+  "secretLabel": "Secret (Base32)",
+  "save": "Save",
+  "nameRequired": "Enter the account name",
+  "secretRequired": "Enter the secret",
+  "secretInvalid": "The secret must be in Base32: letters A–Z and digits 2–7",
+
+  "failureNotAnOtpAuthUri": "This is not an authenticator QR code. It must contain an otpauth:// link.",
+  "failureHotp": "Counter-based codes (HOTP) are not supported. The app works with time-based codes (TOTP).",
+  "failureUnsupportedType": "The code type “{type}” is not supported. The app works with time-based codes (TOTP).",
+  "failureMissingLabel": "The QR code has no account name.",
+  "failureMissingSecret": "The QR code has no secret.",
+  "failureInvalidSecret": "The secret in the QR code is damaged: it is not in Base32.",
+  "failureInvalidAlgorithm": "The algorithm “{value}” is not supported. SHA1, SHA256 and SHA512 are allowed.",
+  "failureInvalidDigits": "Invalid number of digits: “{value}”. 6, 7 and 8 are allowed.",
+  "failureInvalidPeriod": "Invalid period: “{value}”. It must be a whole number of seconds above zero.",
+  "failureInvalidParameter": "Invalid value “{value}” of the parameter {name}."
+}

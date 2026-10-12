@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:otp_guard/app/strings.dart';
+import 'package:otp_guard/app/otp_auth_failure_message.dart';
 import 'package:otp_guard/features/otp/domain/otp_auth_parser.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_cubit.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/add_account_outcome.dart';
+import 'package:otp_guard/l10n/s.dart';
 
 /// A form for adding an account by typing: the service, the account name and
 /// the secret in Base32.
@@ -61,19 +62,19 @@ class _ManualEntryPageState extends State<ManualEntryPage> {
     switch (outcome) {
       case AccountSaved():
         messenger.showSnackBar(
-          const SnackBar(content: Text(Strings.accountAdded)),
+          SnackBar(content: Text(S.of(context).accountAdded)),
         );
         widget.onFinished();
       case AccountDuplicate():
         messenger.showSnackBar(
-          const SnackBar(content: Text(Strings.accountDuplicate)),
+          SnackBar(content: Text(S.of(context).accountDuplicate)),
         );
         widget.onFinished();
       case AccountRejected(:final failure):
         _showFieldError(failure, messenger);
       case AccountStorageFailed():
         messenger.showSnackBar(
-          const SnackBar(content: Text(Strings.saveFailed)),
+          SnackBar(content: Text(S.of(context).saveFailed)),
         );
     }
   }
@@ -83,19 +84,20 @@ class _ManualEntryPageState extends State<ManualEntryPage> {
     OtpAuthFailure failure,
     ScaffoldMessengerState messenger,
   ) {
+    final l10n = S.of(context);
     setState(() {
       switch (failure) {
         case MissingLabel():
-          _nameError = Strings.nameRequired;
+          _nameError = l10n.nameRequired;
         case MissingSecret():
-          _secretError = Strings.secretRequired;
+          _secretError = l10n.secretRequired;
         case InvalidSecret():
-          _secretError = Strings.secretInvalid;
+          _secretError = l10n.secretInvalid;
         case NotAnOtpAuthUri() || UnsupportedOtpType() || InvalidParameter():
           // These come only from a link, never from the form. A text is
           // shown all the same, instead of nothing.
           messenger.showSnackBar(
-            SnackBar(content: Text(Strings.forFailure(failure))),
+            SnackBar(content: Text(l10n.forFailure(failure))),
           );
       }
     });
@@ -103,21 +105,22 @@ class _ManualEntryPageState extends State<ManualEntryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = S.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text(Strings.manualTitle)),
+      appBar: AppBar(title: Text(l10n.manualTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
             controller: _issuer,
-            decoration: const InputDecoration(labelText: Strings.issuerLabel),
+            decoration: InputDecoration(labelText: l10n.issuerLabel),
             textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _name,
             decoration: InputDecoration(
-              labelText: Strings.nameLabel,
+              labelText: l10n.nameLabel,
               errorText: _nameError,
             ),
             textInputAction: TextInputAction.next,
@@ -126,7 +129,7 @@ class _ManualEntryPageState extends State<ManualEntryPage> {
           TextField(
             controller: _secret,
             decoration: InputDecoration(
-              labelText: Strings.secretLabel,
+              labelText: l10n.secretLabel,
               errorText: _secretError,
             ),
             // The secret is typed once. No suggestions or corrections, which
@@ -140,7 +143,7 @@ class _ManualEntryPageState extends State<ManualEntryPage> {
           const SizedBox(height: 24),
           FilledButton(
             onPressed: _isSaving ? null : () => unawaited(_save()),
-            child: const Text(Strings.save),
+            child: Text(l10n.save),
           ),
         ],
       ),
