@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:otp_guard/app/strings.dart';
@@ -317,6 +319,99 @@ void main() {
 
       expect(env.security.protectionCalls, [true, false]);
       expect(env.security.hasListeners, isFalse);
+    });
+
+    group('when the protection can not be turned on', () {
+      testWidgets('warns that nothing blocks a screenshot', (tester) async {
+        final env = TestEnvironment(
+          repository: FakeAccountRepository(accounts: [testAccount()]),
+          clock: FakeClock.atUnix(59),
+        );
+        env.security.failSettingProtection = true;
+        await env.pump(tester, page());
+        await env.load(tester);
+        await tester.pump();
+
+        expect(find.text(Strings.protectionFailedBanner), findsOneWidget);
+      });
+
+      testWidgets('still shows the codes', (tester) async {
+        final env = TestEnvironment(
+          repository: FakeAccountRepository(accounts: [testAccount()]),
+          clock: FakeClock.atUnix(59),
+        );
+        env.security.failSettingProtection = true;
+        await env.pump(tester, page());
+        await env.load(tester);
+        await tester.pump();
+
+        expect(textOf(tester, const Key('code-id-1')), '287 082');
+      });
+
+      testWidgets('warns in the empty list too', (tester) async {
+        final env = TestEnvironment();
+        env.security.failSettingProtection = true;
+        await env.pump(tester, page());
+        await env.load(tester);
+        await tester.pump();
+
+        expect(find.text(Strings.protectionFailedBanner), findsOneWidget);
+        expect(find.text(Strings.emptyTitle), findsOneWidget);
+      });
+
+      testWidgets('still hides the codes while the screen is recorded', (
+        tester,
+      ) async {
+        final env = TestEnvironment(
+          repository: FakeAccountRepository(accounts: [testAccount()]),
+          clock: FakeClock.atUnix(59),
+        );
+        env.security.failSettingProtection = true;
+        await env.pump(tester, page());
+        await env.load(tester);
+        await tester.pump();
+
+        env.security.recording(isRecording: true);
+        await tester.pump();
+        await tester.pump();
+
+        expect(textOf(tester, const Key('code-id-1')), Strings.hiddenCode);
+        expect(find.text(Strings.protectionFailedBanner), findsOneWidget);
+        expect(find.text(Strings.recordingBanner), findsOneWidget);
+      });
+    });
+
+    group('when the protection is on', () {
+      testWidgets('says nothing', (tester) async {
+        final env = TestEnvironment(
+          repository: FakeAccountRepository(accounts: [testAccount()]),
+        );
+        await env.pump(tester, page());
+        await env.load(tester);
+        await tester.pump();
+
+        expect(find.text(Strings.protectionFailedBanner), findsNothing);
+      });
+
+      testWidgets('says nothing while the platform has not answered', (
+        tester,
+      ) async {
+        final env = TestEnvironment(
+          repository: FakeAccountRepository(accounts: [testAccount()]),
+        );
+        final answer = Completer<void>();
+        env.security.protectionAnswer = answer.future;
+        await env.pump(tester, page());
+        await env.load(tester);
+        await tester.pump();
+
+        expect(find.text(Strings.protectionFailedBanner), findsNothing);
+
+        answer.complete();
+        await tester.pump();
+        await tester.pump();
+        expect(find.text(Strings.protectionFailedBanner), findsNothing);
+      });
     });
 
     testWidgets('hides the codes while the screen is recorded', (tester) async {

@@ -39,6 +39,9 @@ abstract final class Strings {
       'Идёт запись экрана. Коды скрыты, пока она не закончится.';
   static const screenshotTaken =
       'Сделан снимок экрана. Коды на нём могли попасть в кадр.';
+  static const protectionFailedBanner =
+      'Защита экрана не включилась. Снимки, запись экрана и превью в списке '
+      'приложений не защищены: коды могут попасть в кадр.';
 
   // Adding.
   static const scanQr = 'Сканировать QR-код';

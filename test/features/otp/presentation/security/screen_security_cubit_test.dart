@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:otp_guard/features/otp/presentation/security/screen_security_cubit.dart';
 
@@ -25,6 +27,59 @@ void main() {
 
     expect(security.protectionCalls, [true]);
     expect(security.hasListeners, isTrue);
+  });
+
+  group('the status of the protection', () {
+    test('is pending until the platform answers', () async {
+      final answer = Completer<void>();
+      security.protectionAnswer = answer.future;
+
+      final started = cubit.start();
+      await pumpEventQueue();
+      expect(cubit.state.protection, ProtectionStatus.pending);
+
+      answer.complete();
+      await started;
+      expect(cubit.state.protection, ProtectionStatus.enabled);
+    });
+
+    test('is enabled when the platform turned the protection on', () async {
+      await cubit.start();
+
+      expect(cubit.state.protection, ProtectionStatus.enabled);
+    });
+
+    test('is failed when the platform could not turn it on', () async {
+      security.failSettingProtection = true;
+
+      await cubit.start();
+
+      expect(cubit.state.protection, ProtectionStatus.failed);
+    });
+
+    test('is not touched by the events', () async {
+      security.failSettingProtection = true;
+      await cubit.start();
+
+      security
+        ..screenshot()
+        ..recording(isRecording: true);
+      await pumpEventQueue();
+
+      expect(cubit.state.protection, ProtectionStatus.failed);
+    });
+
+    test('is not emitted when the screen is gone before the answer', () async {
+      final answer = Completer<void>();
+      security.protectionAnswer = answer.future;
+      final started = cubit.start();
+      await pumpEventQueue();
+
+      await cubit.close();
+      answer.complete();
+
+      await expectLater(started, completes);
+    });
   });
 
   test('a screenshot is counted, every one of them', () async {

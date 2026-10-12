@@ -14,7 +14,8 @@ import 'package:otp_guard/features/otp/presentation/widgets/account_tile.dart';
 ///
 /// While it is open, the screen is protected and the events of the plugin are
 /// followed: a screenshot gets a notice, and the codes are hidden while the
-/// screen is being recorded.
+/// screen is being recorded. If the protection could not be turned on, a
+/// warning says so, as the app promises it.
 class AccountsPage extends StatelessWidget {
   /// Creates the page. The callbacks do the navigation, so the page does not
   /// depend on a router. [onOpenKeyDemo] is null where the demo is not wanted.
@@ -170,11 +171,15 @@ class _AccountsList extends StatelessWidget {
     final isRecording = context.select<ScreenSecurityCubit, bool>(
       (cubit) => cubit.state.isRecording,
     );
+    final protectionFailed = context.select<ScreenSecurityCubit, bool>(
+      (cubit) => cubit.state.protection == ProtectionStatus.failed,
+    );
 
     return ListView(
       // Room for the button, so it does not cover the last row.
       padding: const EdgeInsets.only(bottom: 88),
       children: [
+        if (protectionFailed) const _ProtectionFailedBanner(),
         if (state.unreadableIds.isNotEmpty)
           _UnreadableBanner(count: state.unreadableIds.length),
         if (isRecording) const _RecordingBanner(),
@@ -243,6 +248,26 @@ class _EmptyView extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(Strings.emptyHint, textAlign: TextAlign.center),
         ],
+      ),
+    );
+  }
+}
+
+class _ProtectionFailedBanner extends StatelessWidget {
+  const _ProtectionFailedBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      color: colors.errorContainer,
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: ListTile(
+        leading: Icon(Icons.gpp_maybe, color: colors.onErrorContainer),
+        title: Text(
+          Strings.protectionFailedBanner,
+          style: TextStyle(color: colors.onErrorContainer),
+        ),
       ),
     );
   }

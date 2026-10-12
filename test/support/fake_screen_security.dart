@@ -15,9 +15,15 @@ class FakeScreenSecurity implements ScreenSecurity {
   /// If true, `setProtection` throws.
   bool failSettingProtection = false;
 
+  /// If set, turning the protection on waits for it before it answers, so a
+  /// test can look at the moment between the call and the answer. Turning it
+  /// off is not held, or closing a cubit would wait as well.
+  Future<void>? protectionAnswer;
+
   @override
   Future<void> setProtection({required bool enabled}) async {
     protectionCalls.add(enabled);
+    if (enabled) await protectionAnswer;
     if (failSettingProtection) {
       // What the plugin throws when it has no window, or is missing.
       throw PlatformException(code: 'NO_ACTIVITY');
