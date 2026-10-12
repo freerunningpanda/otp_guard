@@ -8,7 +8,7 @@ import 'package:otp_guard/features/otp/domain/account_repository.dart';
 import 'package:otp_guard/features/otp/domain/otp_account.dart';
 import 'package:otp_guard/features/otp/domain/otp_auth_parser.dart';
 
-import 'in_memory_key_value_store.dart';
+import '../../../support/in_memory_key_value_store.dart';
 
 const String prefix = SecureAccountRepository.keyPrefix;
 
@@ -119,6 +119,79 @@ void main() {
       final result = await repository.add(account(id: 'id-2'));
 
       expect(result, isA<AccountAdded>());
+    });
+  });
+
+  group('removeAll', () {
+    test('removes every account', () async {
+      await repository.add(account());
+      await repository.add(account(id: 'id-2', name: 'bob'));
+
+      await repository.removeAll();
+
+      expect((await repository.getAccounts()).accounts, isEmpty);
+      expect(store.entries, isEmpty);
+    });
+
+    test('does nothing when there are none', () async {
+      await expectLater(repository.removeAll(), completes);
+      expect(store.entries, isEmpty);
+    });
+
+    test('removes a record that can not be read, too', () async {
+      await repository.add(account());
+      store.entries['${prefix}broken'] = 'not a record';
+
+      await repository.removeAll();
+
+      expect(store.entries, isEmpty);
+      expect((await repository.getAccounts()).unreadableIds, isEmpty);
+    });
+
+    test('leaves the entries of other parts of the app', () async {
+      await repository.add(account());
+      store.entries['otp.lock.pin'] = 'the PIN record';
+      store.entries['something.else'] = 'value';
+
+      await repository.removeAll();
+
+      expect(store.entries, {
+        'otp.lock.pin': 'the PIN record',
+        'something.else': 'value',
+      });
+    });
+
+    test('accounts can be added again afterwards', () async {
+      await repository.add(account());
+      await repository.removeAll();
+
+      final result = await repository.add(account());
+
+      expect(result, isA<AccountAdded>());
+    });
+
+    test('waits for an account that is being added', () async {
+      store.delay = const Duration(milliseconds: 5);
+
+      final adding = repository.add(account());
+      final removing = repository.removeAll();
+      await Future.wait([adding, removing]);
+
+      expect((await repository.getAccounts()).accounts, isEmpty);
+    });
+
+    test('a storage that fails throws, and what is left stays', () async {
+      await repository.add(account());
+      await repository.add(account(id: 'id-2', name: 'bob'));
+      store.failWriteWhen = (key) => key == '${prefix}id-2';
+
+      await expectLater(repository.removeAll(), throwsStateError);
+
+      store.failWriteWhen = null;
+      expect((await repository.getAccounts()).accounts, hasLength(1));
+
+      await repository.removeAll();
+      expect(store.entries, isEmpty);
     });
   });
 

@@ -6,6 +6,10 @@ abstract interface class KeyValueStore {
   /// All the entries.
   Future<Map<String, String>> readAll();
 
+  /// The value of [key], or null if there is none. For a part of the app that
+  /// needs one entry and should not read the secrets of the others.
+  Future<String?> read(String key);
+
   /// Writes [value] under [key], replacing what was there.
   Future<void> write(String key, String value);
 

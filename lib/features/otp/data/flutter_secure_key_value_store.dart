@@ -31,6 +31,9 @@ class FlutterSecureKeyValueStore implements KeyValueStore {
   Future<Map<String, String>> readAll() => _storage.readAll();
 
   @override
+  Future<String?> read(String key) => _storage.read(key: key);
+
+  @override
   Future<void> write(String key, String value) {
     return _storage.write(key: key, value: value);
   }

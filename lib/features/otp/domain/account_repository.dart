@@ -21,6 +21,13 @@ abstract interface class AccountRepository {
   /// Removes the account with [id], also one that can not be read. Does
   /// nothing if there is none.
   Future<void> remove(String id);
+
+  /// Removes every account, also those that can not be read. Does nothing if
+  /// there are none.
+  ///
+  /// Throws if the storage fails, and then some accounts may be gone and some
+  /// still there. The caller that needs all of them gone must not go on.
+  Future<void> removeAll();
 }
 
 /// The accounts that were read, and the ids of the records that could not be.

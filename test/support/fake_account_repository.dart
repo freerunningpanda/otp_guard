@@ -35,6 +35,9 @@ class FakeAccountRepository implements AccountRepository {
   /// The ids that `remove` was called with.
   final removed = <String>[];
 
+  /// How many times `removeAll` was called.
+  int removeAllCount = 0;
+
   @override
   Future<StoredAccounts> getAccounts() async {
     if (failReading) throw const FakeStorageException();
@@ -52,6 +55,14 @@ class FakeAccountRepository implements AccountRepository {
     }
     accounts.add(account);
     return AccountAdded(account);
+  }
+
+  @override
+  Future<void> removeAll() async {
+    removeAllCount++;
+    if (failRemoving) throw const FakeStorageException();
+    accounts.clear();
+    unreadableIds = const [];
   }
 
   @override

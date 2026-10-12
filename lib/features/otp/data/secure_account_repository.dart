@@ -58,6 +58,18 @@ class SecureAccountRepository implements AccountRepository {
   @override
   Future<void> remove(String id) => _inTurn(() => _store.delete(_keyOf(id)));
 
+  @override
+  Future<void> removeAll() {
+    return _inTurn(() async {
+      final entries = await _store.readAll();
+      // Everything under the prefix, readable or not. The entries of other
+      // parts of the app are left alone.
+      for (final key in entries.keys.where((k) => k.startsWith(keyPrefix))) {
+        await _store.delete(key);
+      }
+    });
+  }
+
   Future<StoredAccounts> _read() async {
     final entries = await _store.readAll();
     final accounts = <OtpAccount>[];

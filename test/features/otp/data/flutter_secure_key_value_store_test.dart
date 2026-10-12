@@ -17,6 +17,11 @@ void main() {
       expect(await store.readAll(), {'existing': 'value'});
     });
 
+    test('reads one entry, and null for what is not there', () async {
+      expect(await store.read('existing'), 'value');
+      expect(await store.read('missing'), isNull);
+    });
+
     test('writes, replaces and deletes an entry', () async {
       await store.write('key', 'one');
       expect(await store.readAll(), {'existing': 'value', 'key': 'one'});
