@@ -125,6 +125,42 @@ void main() {
     });
   });
 
+  group('Totp.intervalAt', () {
+    final secret = secrets[OtpAlgorithm.sha1]!;
+    final totp = Totp(secret: secret, digits: 8);
+
+    test('counts the whole periods since 1970', () {
+      expect(totp.intervalAt(unixMs(0)), 0);
+      expect(totp.intervalAt(unixMs(29999)), 0);
+      expect(totp.intervalAt(unixMs(30000)), 1);
+      expect(totp.intervalAt(unixMs(59999)), 1);
+      expect(totp.intervalAt(unixMs(60000)), 2);
+    });
+
+    test('is the counter that the code is made of', () {
+      final time = unix(1111111109);
+
+      expect(
+        totp.codeAt(time),
+        hotp(secret: secret, counter: totp.intervalAt(time), digits: 8),
+      );
+    });
+
+    test('follows the period', () {
+      final minute = Totp(secret: secret, period: 60);
+
+      expect(minute.intervalAt(unixMs(59999)), 0);
+      expect(minute.intervalAt(unixMs(60000)), 1);
+    });
+
+    test('a time before 1970 is an ArgumentError', () {
+      expect(
+        () => totp.intervalAt(DateTime.utc(1969, 12, 31, 23, 59, 59)),
+        throwsArgumentError,
+      );
+    });
+  });
+
   group('Totp.remaining', () {
     final totp = Totp(secret: secrets[OtpAlgorithm.sha1]!);
 

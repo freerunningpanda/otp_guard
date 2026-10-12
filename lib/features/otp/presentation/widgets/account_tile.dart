@@ -8,9 +8,10 @@ import 'package:otp_guard/features/otp/presentation/widgets/code_format.dart';
 
 /// One row of the list: the code of an account and the time it has left.
 ///
-/// The row works out its own code and countdown from the [Clock], once a
-/// second. They are not in the state of the list, so only this row is redrawn
-/// every second, and not the whole list.
+/// The row works out its own countdown from the [Clock], once a second. It is
+/// not in the state of the list, so only this row is redrawn every second, and
+/// not the whole list. The code is worked out again only when a new interval
+/// begins, as it is the same through all of it.
 class AccountTile extends StatefulWidget {
   /// Creates the row. While [hideCode] is true, the code is not shown.
   const AccountTile({
@@ -38,12 +39,30 @@ class _AccountTileState extends State<AccountTile> {
   // Made once per account, not once per second: it copies the secret.
   late Totp _totp = widget.account.toTotp();
 
+  // The code of the interval that was last asked for, and the number of that
+  // interval. Null until a code is shown.
+  int? _interval;
+  String _code = '';
+
   @override
   void didUpdateWidget(AccountTile oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.account != widget.account) {
       _totp = widget.account.toTotp();
+      // Another secret, so the code of the same interval is another one.
+      _interval = null;
     }
+  }
+
+  // The formatted code at [now]. It is worked out when the interval changes,
+  // not at every tick, and not at all while the code is hidden.
+  String _codeAt(DateTime now) {
+    final interval = _totp.intervalAt(now);
+    if (interval != _interval) {
+      _code = formatCode(_totp.codeAt(now));
+      _interval = interval;
+    }
+    return _code;
   }
 
   @override
@@ -85,9 +104,7 @@ class _AccountTileState extends State<AccountTile> {
             ),
           ),
           title: Text(
-            widget.hideCode
-                ? Strings.hiddenCode
-                : formatCode(_totp.codeAt(now)),
+            widget.hideCode ? Strings.hiddenCode : _codeAt(now),
             key: Key('code-${account.id}'),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontFeatures: const [FontFeature.tabularFigures()],

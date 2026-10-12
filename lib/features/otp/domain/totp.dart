@@ -53,11 +53,19 @@ class Totp {
   String codeAt(DateTime time) {
     return hotp(
       secret: _secret,
-      counter: _unixSeconds(time) ~/ period,
+      counter: intervalAt(time),
       digits: digits,
       algorithm: algorithm,
     );
   }
+
+  /// The number of the interval that [time] falls in: the number of whole
+  /// [period]s since 1970-01-01 UTC, which is also the counter of the code.
+  ///
+  /// The code is the same through an interval, so a caller that asks for it
+  /// often can work it out again only when this number changes. Throws an
+  /// [ArgumentError] for a time before 1970.
+  int intervalAt(DateTime time) => _unixSeconds(time) ~/ period;
 
   /// How long the code valid at [time] stays valid.
   ///
