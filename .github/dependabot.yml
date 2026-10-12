@@ -1,0 +1,9 @@
+version: 2
+updates:
+  # The actions in the workflows are pinned to hashes, which do not move by
+  # themselves. This proposes the hash of each new release, as a pull request
+  # that the CI checks.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

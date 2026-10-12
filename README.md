@@ -109,7 +109,9 @@ It is a barrier in the interface, and this is on purpose.
 
 - **The generated files must match their sources.** The Pigeon and localization files are committed, so the job generates them again and fails if anything differs. After changing `pigeons/device_key.dart` or an `.arb` file, generate and commit the result (see the plugin README and [Localization](#localization)).
 - **Flutter is pinned** to the version in `FLUTTER_VERSION` of the workflow, and Pigeon to an exact version in the plugin, so a run cannot fail because a newer tool formats or generates differently. To move to a newer one, change it in one place and commit.
-- **No secrets are needed.** The builds are debug builds without signing.
+- **The actions are pinned to commit hashes**, with the version in a comment, not to tags such as `v2`. A tag is a label that its author can move to other code, and then a run would execute what nobody here has read; a hash cannot be moved. [Dependabot](.github/dependabot.yml) proposes the new hashes as pull requests, which the CI checks.
+- **Coverage is measured and has a floor.** The Dart job writes the line coverage of the app to the summary of the run and fails below `MIN_COVERAGE` (85%), see [`coverage.sh`](.github/scripts/coverage.sh). Generated localization is not counted, and a file that no test loads is not in the number at all, so treat it as a floor against regressions, not as a measure of quality.
+- **No secrets are needed.** The builds are debug builds without signing. A release build, with the shrinking and obfuscation of R8 that debug builds skip, comes with the Fastlane step.
 
 To run the Dart checks as CI does, on your own machine:
 

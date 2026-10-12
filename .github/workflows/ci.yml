@@ -15,7 +15,16 @@ concurrency:
 permissions:
   contents: read
 
+# Every action is pinned to the hash of a commit, with its version in the
+# comment. A tag such as v2 is a label that the author can move to other code,
+# and then a run would execute code that nobody here has read. A hash cannot be
+# moved. Dependabot (see dependabot.yml) proposes the newer hashes.
 env:
+  # The line coverage of the app must not fall below this. It is a floor under
+  # what the tests give now, not a goal: it stops a change that adds code with
+  # no test, and a drop that is on purpose can lower it in the same commit.
+  MIN_COVERAGE: 85
+
   # The same Flutter as on the machine that develops the app. A newer one can
   # format, analyze or build differently, and then the run fails for a reason
   # that is not in the code.
@@ -27,9 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
@@ -74,8 +83,11 @@ jobs:
       - name: Test the app
         run: flutter test --coverage
 
+      - name: Coverage
+        run: bash .github/scripts/coverage.sh coverage/lcov.info "$MIN_COVERAGE"
+
       - name: Keep the coverage
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage
           path: coverage/lcov.info
@@ -90,15 +102,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
           java-version: 17
           cache: gradle
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
@@ -127,9 +139,9 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
