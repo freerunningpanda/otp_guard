@@ -396,6 +396,258 @@ abstract class S {
   /// In ru, this message translates to:
   /// **'Недопустимое значение «{value}» параметра {name}.'**
   String failureInvalidParameter(String name, String value);
+
+  /// The headline of the lock screen.
+  ///
+  /// In ru, this message translates to:
+  /// **'Приложение заблокировано'**
+  String get lockTitle;
+
+  /// No description provided for @lockLoadFailedTitle.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось прочитать настройки блокировки'**
+  String get lockLoadFailedTitle;
+
+  /// No description provided for @lockLoadFailedBody.
+  ///
+  /// In ru, this message translates to:
+  /// **'Приложение остаётся закрытым, пока их нельзя прочитать.'**
+  String get lockLoadFailedBody;
+
+  /// No description provided for @lockDamagedTitle.
+  ///
+  /// In ru, this message translates to:
+  /// **'Запись блокировки повреждена'**
+  String get lockDamagedTitle;
+
+  /// No description provided for @lockDamagedBody.
+  ///
+  /// In ru, this message translates to:
+  /// **'Прочитать её нельзя, и повтор не поможет. Выйти из этого состояния можно, только сбросив приложение: все аккаунты будут удалены.'**
+  String get lockDamagedBody;
+
+  /// No description provided for @resetApp.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить приложение'**
+  String get resetApp;
+
+  /// No description provided for @pinLabel.
+  ///
+  /// In ru, this message translates to:
+  /// **'PIN-код'**
+  String get pinLabel;
+
+  /// No description provided for @unlock.
+  ///
+  /// In ru, this message translates to:
+  /// **'Разблокировать'**
+  String get unlock;
+
+  /// No description provided for @unlockWithBiometrics.
+  ///
+  /// In ru, this message translates to:
+  /// **'Войти по отпечатку или лицу'**
+  String get unlockWithBiometrics;
+
+  /// No description provided for @pinWrong.
+  ///
+  /// In ru, this message translates to:
+  /// **'Неверный PIN-код'**
+  String get pinWrong;
+
+  /// Shown while the wait after wrong PINs is on. The time is minutes and seconds, like 0:30 or 5:00.
+  ///
+  /// In ru, this message translates to:
+  /// **'Слишком много попыток. Повторите через {time}'**
+  String pinWait(String time);
+
+  /// No description provided for @lockBiometricUnavailable.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вход по биометрии сейчас недоступен. Введите PIN-код.'**
+  String get lockBiometricUnavailable;
+
+  /// No description provided for @lockBiometricFailed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось подтвердить личность. Введите PIN-код.'**
+  String get lockBiometricFailed;
+
+  /// No description provided for @lockBiometricRenewalHint.
+  ///
+  /// In ru, this message translates to:
+  /// **'Набор отпечатков или лиц на устройстве изменился, и вход по биометрии отключён. Введите PIN-код: после входа его можно включить заново.'**
+  String get lockBiometricRenewalHint;
+
+  /// No description provided for @lockStorageFailed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось записать попытку входа. Попробуйте ещё раз.'**
+  String get lockStorageFailed;
+
+  /// No description provided for @forgotPin.
+  ///
+  /// In ru, this message translates to:
+  /// **'Забыли PIN-код?'**
+  String get forgotPin;
+
+  /// No description provided for @resetTitle.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить приложение?'**
+  String get resetTitle;
+
+  /// No description provided for @resetBody.
+  ///
+  /// In ru, this message translates to:
+  /// **'Все аккаунты и PIN-код будут удалены с этого устройства без возможности восстановления. Если вход на сайте защищён этими кодами, вы можете потерять доступ: проверьте, что у вас есть резервные коды или другой способ входа. После сброса вы создадите новый PIN-код.'**
+  String get resetBody;
+
+  /// No description provided for @resetConfirm.
+  ///
+  /// In ru, this message translates to:
+  /// **'Стереть всё'**
+  String get resetConfirm;
+
+  /// No description provided for @lockResetFailed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось стереть данные. Попробуйте ещё раз.'**
+  String get lockResetFailed;
+
+  /// The headline of the system prompt for a fingerprint or a face, which unlocks the app.
+  ///
+  /// In ru, this message translates to:
+  /// **'Подтвердите вход'**
+  String get biometricPromptTitle;
+
+  /// The explanation under the headline of the system prompt.
+  ///
+  /// In ru, this message translates to:
+  /// **'Приложение заблокировано'**
+  String get biometricPromptSubtitle;
+
+  /// No description provided for @pinSetupTitle.
+  ///
+  /// In ru, this message translates to:
+  /// **'Создайте PIN-код'**
+  String get pinSetupTitle;
+
+  /// No description provided for @pinSetupHint.
+  ///
+  /// In ru, this message translates to:
+  /// **'PIN-код закрывает вход в приложение. Он не шифрует секреты и не восстанавливается, поэтому запомните его.'**
+  String get pinSetupHint;
+
+  /// No description provided for @pinConfirmLabel.
+  ///
+  /// In ru, this message translates to:
+  /// **'Повторите PIN-код'**
+  String get pinConfirmLabel;
+
+  /// No description provided for @pinCreate.
+  ///
+  /// In ru, this message translates to:
+  /// **'Создать PIN-код'**
+  String get pinCreate;
+
+  /// No description provided for @pinLengthError.
+  ///
+  /// In ru, this message translates to:
+  /// **'От {min} до {max} цифр'**
+  String pinLengthError(int min, int max);
+
+  /// No description provided for @pinDigitsOnly.
+  ///
+  /// In ru, this message translates to:
+  /// **'Только цифры'**
+  String get pinDigitsOnly;
+
+  /// No description provided for @pinMismatch.
+  ///
+  /// In ru, this message translates to:
+  /// **'PIN-коды не совпадают'**
+  String get pinMismatch;
+
+  /// No description provided for @pinSaveFailed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось сохранить PIN-код. Попробуйте ещё раз.'**
+  String get pinSaveFailed;
+
+  /// No description provided for @biometricOfferTitle.
+  ///
+  /// In ru, this message translates to:
+  /// **'Включить вход по биометрии?'**
+  String get biometricOfferTitle;
+
+  /// No description provided for @biometricOfferBody.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отпечаток или лицо вместо PIN-кода. PIN-код останется запасным способом.'**
+  String get biometricOfferBody;
+
+  /// No description provided for @biometricRenewTitle.
+  ///
+  /// In ru, this message translates to:
+  /// **'Набор отпечатков изменился'**
+  String get biometricRenewTitle;
+
+  /// No description provided for @biometricRenewBody.
+  ///
+  /// In ru, this message translates to:
+  /// **'Вход по биометрии отключён, потому что на устройстве изменился набор отпечатков или лиц. Включить его заново?'**
+  String get biometricRenewBody;
+
+  /// No description provided for @biometricEnable.
+  ///
+  /// In ru, this message translates to:
+  /// **'Включить'**
+  String get biometricEnable;
+
+  /// No description provided for @biometricNotNow.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не сейчас'**
+  String get biometricNotNow;
+
+  /// No description provided for @biometricUnavailableOnDevice.
+  ///
+  /// In ru, this message translates to:
+  /// **'Биометрия недоступна на этом устройстве: нужны настроенные отпечатки или лицо и защищённое хранилище ключей.'**
+  String get biometricUnavailableOnDevice;
+
+  /// No description provided for @biometricEnableFailed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось включить вход по биометрии'**
+  String get biometricEnableFailed;
+
+  /// No description provided for @biometricDisableFailed.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось отключить вход по биометрии'**
+  String get biometricDisableFailed;
+
+  /// No description provided for @menuLockNow.
+  ///
+  /// In ru, this message translates to:
+  /// **'Заблокировать'**
+  String get menuLockNow;
+
+  /// No description provided for @menuBiometricsOn.
+  ///
+  /// In ru, this message translates to:
+  /// **'Включить вход по биометрии'**
+  String get menuBiometricsOn;
+
+  /// No description provided for @menuBiometricsOff.
+  ///
+  /// In ru, this message translates to:
+  /// **'Отключить вход по биометрии'**
+  String get menuBiometricsOff;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

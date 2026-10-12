@@ -194,4 +194,147 @@ class SRu extends S {
   String failureInvalidParameter(String name, String value) {
     return 'Недопустимое значение «$value» параметра $name.';
   }
+
+  @override
+  String get lockTitle => 'Приложение заблокировано';
+
+  @override
+  String get lockLoadFailedTitle => 'Не удалось прочитать настройки блокировки';
+
+  @override
+  String get lockLoadFailedBody =>
+      'Приложение остаётся закрытым, пока их нельзя прочитать.';
+
+  @override
+  String get lockDamagedTitle => 'Запись блокировки повреждена';
+
+  @override
+  String get lockDamagedBody =>
+      'Прочитать её нельзя, и повтор не поможет. Выйти из этого состояния можно, только сбросив приложение: все аккаунты будут удалены.';
+
+  @override
+  String get resetApp => 'Сбросить приложение';
+
+  @override
+  String get pinLabel => 'PIN-код';
+
+  @override
+  String get unlock => 'Разблокировать';
+
+  @override
+  String get unlockWithBiometrics => 'Войти по отпечатку или лицу';
+
+  @override
+  String get pinWrong => 'Неверный PIN-код';
+
+  @override
+  String pinWait(String time) {
+    return 'Слишком много попыток. Повторите через $time';
+  }
+
+  @override
+  String get lockBiometricUnavailable =>
+      'Вход по биометрии сейчас недоступен. Введите PIN-код.';
+
+  @override
+  String get lockBiometricFailed =>
+      'Не удалось подтвердить личность. Введите PIN-код.';
+
+  @override
+  String get lockBiometricRenewalHint =>
+      'Набор отпечатков или лиц на устройстве изменился, и вход по биометрии отключён. Введите PIN-код: после входа его можно включить заново.';
+
+  @override
+  String get lockStorageFailed =>
+      'Не удалось записать попытку входа. Попробуйте ещё раз.';
+
+  @override
+  String get forgotPin => 'Забыли PIN-код?';
+
+  @override
+  String get resetTitle => 'Сбросить приложение?';
+
+  @override
+  String get resetBody =>
+      'Все аккаунты и PIN-код будут удалены с этого устройства без возможности восстановления. Если вход на сайте защищён этими кодами, вы можете потерять доступ: проверьте, что у вас есть резервные коды или другой способ входа. После сброса вы создадите новый PIN-код.';
+
+  @override
+  String get resetConfirm => 'Стереть всё';
+
+  @override
+  String get lockResetFailed =>
+      'Не удалось стереть данные. Попробуйте ещё раз.';
+
+  @override
+  String get biometricPromptTitle => 'Подтвердите вход';
+
+  @override
+  String get biometricPromptSubtitle => 'Приложение заблокировано';
+
+  @override
+  String get pinSetupTitle => 'Создайте PIN-код';
+
+  @override
+  String get pinSetupHint =>
+      'PIN-код закрывает вход в приложение. Он не шифрует секреты и не восстанавливается, поэтому запомните его.';
+
+  @override
+  String get pinConfirmLabel => 'Повторите PIN-код';
+
+  @override
+  String get pinCreate => 'Создать PIN-код';
+
+  @override
+  String pinLengthError(int min, int max) {
+    return 'От $min до $max цифр';
+  }
+
+  @override
+  String get pinDigitsOnly => 'Только цифры';
+
+  @override
+  String get pinMismatch => 'PIN-коды не совпадают';
+
+  @override
+  String get pinSaveFailed =>
+      'Не удалось сохранить PIN-код. Попробуйте ещё раз.';
+
+  @override
+  String get biometricOfferTitle => 'Включить вход по биометрии?';
+
+  @override
+  String get biometricOfferBody =>
+      'Отпечаток или лицо вместо PIN-кода. PIN-код останется запасным способом.';
+
+  @override
+  String get biometricRenewTitle => 'Набор отпечатков изменился';
+
+  @override
+  String get biometricRenewBody =>
+      'Вход по биометрии отключён, потому что на устройстве изменился набор отпечатков или лиц. Включить его заново?';
+
+  @override
+  String get biometricEnable => 'Включить';
+
+  @override
+  String get biometricNotNow => 'Не сейчас';
+
+  @override
+  String get biometricUnavailableOnDevice =>
+      'Биометрия недоступна на этом устройстве: нужны настроенные отпечатки или лицо и защищённое хранилище ключей.';
+
+  @override
+  String get biometricEnableFailed => 'Не удалось включить вход по биометрии';
+
+  @override
+  String get biometricDisableFailed => 'Не удалось отключить вход по биометрии';
+
+  @override
+  String get menuLockNow => 'Заблокировать';
+
+  @override
+  String get menuBiometricsOn => 'Включить вход по биометрии';
+
+  @override
+  String get menuBiometricsOff => 'Отключить вход по биометрии';
 }

@@ -106,5 +106,73 @@
       "name": {"type": "String", "example": "color"},
       "value": {"type": "String", "example": "red"}
     }
-  }
+  },
+
+  "lockTitle": "Приложение заблокировано",
+  "@lockTitle": {
+    "description": "The headline of the lock screen."
+  },
+  "lockLoadFailedTitle": "Не удалось прочитать настройки блокировки",
+  "lockLoadFailedBody": "Приложение остаётся закрытым, пока их нельзя прочитать.",
+  "lockDamagedTitle": "Запись блокировки повреждена",
+  "lockDamagedBody": "Прочитать её нельзя, и повтор не поможет. Выйти из этого состояния можно, только сбросив приложение: все аккаунты будут удалены.",
+  "resetApp": "Сбросить приложение",
+  "pinLabel": "PIN-код",
+  "unlock": "Разблокировать",
+  "unlockWithBiometrics": "Войти по отпечатку или лицу",
+  "pinWrong": "Неверный PIN-код",
+  "pinWait": "Слишком много попыток. Повторите через {time}",
+  "@pinWait": {
+    "description": "Shown while the wait after wrong PINs is on. The time is minutes and seconds, like 0:30 or 5:00.",
+    "placeholders": {
+      "time": {"type": "String", "example": "0:30"}
+    }
+  },
+  "lockBiometricUnavailable": "Вход по биометрии сейчас недоступен. Введите PIN-код.",
+  "lockBiometricFailed": "Не удалось подтвердить личность. Введите PIN-код.",
+  "lockBiometricRenewalHint": "Набор отпечатков или лиц на устройстве изменился, и вход по биометрии отключён. Введите PIN-код: после входа его можно включить заново.",
+  "lockStorageFailed": "Не удалось записать попытку входа. Попробуйте ещё раз.",
+  "forgotPin": "Забыли PIN-код?",
+  "resetTitle": "Сбросить приложение?",
+  "resetBody": "Все аккаунты и PIN-код будут удалены с этого устройства без возможности восстановления. Если вход на сайте защищён этими кодами, вы можете потерять доступ: проверьте, что у вас есть резервные коды или другой способ входа. После сброса вы создадите новый PIN-код.",
+  "resetConfirm": "Стереть всё",
+  "lockResetFailed": "Не удалось стереть данные. Попробуйте ещё раз.",
+
+  "biometricPromptTitle": "Подтвердите вход",
+  "@biometricPromptTitle": {
+    "description": "The headline of the system prompt for a fingerprint or a face, which unlocks the app."
+  },
+  "biometricPromptSubtitle": "Приложение заблокировано",
+  "@biometricPromptSubtitle": {
+    "description": "The explanation under the headline of the system prompt."
+  },
+
+  "pinSetupTitle": "Создайте PIN-код",
+  "pinSetupHint": "PIN-код закрывает вход в приложение. Он не шифрует секреты и не восстанавливается, поэтому запомните его.",
+  "pinConfirmLabel": "Повторите PIN-код",
+  "pinCreate": "Создать PIN-код",
+  "pinLengthError": "От {min} до {max} цифр",
+  "@pinLengthError": {
+    "placeholders": {
+      "min": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "pinDigitsOnly": "Только цифры",
+  "pinMismatch": "PIN-коды не совпадают",
+  "pinSaveFailed": "Не удалось сохранить PIN-код. Попробуйте ещё раз.",
+
+  "biometricOfferTitle": "Включить вход по биометрии?",
+  "biometricOfferBody": "Отпечаток или лицо вместо PIN-кода. PIN-код останется запасным способом.",
+  "biometricRenewTitle": "Набор отпечатков изменился",
+  "biometricRenewBody": "Вход по биометрии отключён, потому что на устройстве изменился набор отпечатков или лиц. Включить его заново?",
+  "biometricEnable": "Включить",
+  "biometricNotNow": "Не сейчас",
+  "biometricUnavailableOnDevice": "Биометрия недоступна на этом устройстве: нужны настроенные отпечатки или лицо и защищённое хранилище ключей.",
+  "biometricEnableFailed": "Не удалось включить вход по биометрии",
+  "biometricDisableFailed": "Не удалось отключить вход по биометрии",
+
+  "menuLockNow": "Заблокировать",
+  "menuBiometricsOn": "Включить вход по биометрии",
+  "menuBiometricsOff": "Отключить вход по биометрии"
 }

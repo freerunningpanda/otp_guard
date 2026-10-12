@@ -8,5 +8,10 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final getIt = GetIt.instance;
   configureDependencies(getIt);
-  runApp(App(getIt: getIt, router: createRouter()));
+  runApp(
+    App(
+      getIt: getIt,
+      router: createRouter(lock: getIt()),
+    ),
+  );
 }

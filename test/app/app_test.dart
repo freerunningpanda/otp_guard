@@ -5,9 +5,15 @@ import 'package:get_it/get_it.dart';
 import 'package:otp_guard/app/app.dart';
 import 'package:otp_guard/app/injection.dart';
 import 'package:otp_guard/app/router.dart';
+import 'package:otp_guard/core/security/device_keys.dart';
 import 'package:otp_guard/core/security/screen_security.dart';
 import 'package:otp_guard/core/time/clock.dart';
 import 'package:otp_guard/core/time/system_clock.dart';
+import 'package:otp_guard/features/lock/data/secure_lock_repository.dart';
+import 'package:otp_guard/features/lock/domain/biometric_auth.dart';
+import 'package:otp_guard/features/lock/domain/lock_repository.dart';
+import 'package:otp_guard/features/lock/domain/pin_hasher.dart';
+import 'package:otp_guard/features/lock/presentation/lock_cubit.dart';
 import 'package:otp_guard/features/otp/data/key_value_store.dart';
 import 'package:otp_guard/features/otp/domain/account_repository.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_cubit.dart';
@@ -16,23 +22,28 @@ import '../support/fake_account_repository.dart';
 import '../support/fake_clock.dart';
 import '../support/fake_screen_security.dart';
 import '../support/localizations.dart';
+import '../support/lock_harness.dart';
 
 void main() {
   group('the app, with the screens joined by the router', () {
     late GetIt getIt;
     late FakeAccountRepository repository;
+    late LockHarness lock;
 
     setUp(() {
       repository = FakeAccountRepository();
+      lock = LockHarness();
       var ids = 0;
       getIt = GetIt.asNewInstance()
         ..registerSingleton<Clock>(FakeClock.atUnix(59))
         ..registerSingleton<ScreenSecurity>(FakeScreenSecurity())
+        ..registerSingleton<LockCubit>(lock.cubit)
         ..registerFactory<AccountsCubit>(
           () => AccountsCubit(repository, newId: () => 'new-${++ids}'),
         );
     });
 
+    // The app closes the lock with its tree.
     tearDown(() => getIt.reset());
 
     // [language] is the language of the device, which the app follows.
@@ -42,7 +53,14 @@ void main() {
     }) async {
       tester.platformDispatcher.localesTestValue = [language];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
-      await tester.pumpWidget(App(getIt: getIt, router: createRouter()));
+      // These tests are about the screens, not the lock: it is open.
+      await lock.setUpUnlocked();
+      await tester.pumpWidget(
+        App(
+          getIt: getIt,
+          router: createRouter(lock: lock.cubit),
+        ),
+      );
       await tester.pumpAndSettle();
     }
 
@@ -175,12 +193,20 @@ void main() {
       expect(getIt<KeyValueStore>(), isNotNull);
       expect(getIt<AccountRepository>(), isNotNull);
       expect(getIt<ScreenSecurity>(), isA<DeviceScreenSecurity>());
+      expect(getIt<DeviceKeys>(), isA<DeviceSecurityKeys>());
+      expect(getIt<LockRepository>(), isA<SecureLockRepository>());
+      expect(getIt<PinHasher>().iterations, PinHasher.defaultIterations);
+      expect(getIt<BiometricAuth>(), isNotNull);
     });
 
     test('gives the same instance of a service every time', () {
       expect(getIt<Clock>(), same(getIt<Clock>()));
       expect(getIt<AccountRepository>(), same(getIt<AccountRepository>()));
       expect(getIt<ScreenSecurity>(), same(getIt<ScreenSecurity>()));
+    });
+
+    test('gives one lock to the whole app', () {
+      expect(getIt<LockCubit>(), same(getIt<LockCubit>()));
     });
 
     test('gives a new cubit every time, on the one repository', () async {

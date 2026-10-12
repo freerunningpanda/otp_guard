@@ -23,6 +23,7 @@ class AccountsPage extends StatelessWidget {
     required this.onScan,
     required this.onEnterManually,
     this.onOpenKeyDemo,
+    this.actions = const [],
     super.key,
   });
 
@@ -34,6 +35,10 @@ class AccountsPage extends StatelessWidget {
 
   /// Opens the page that checks the device key, or null.
   final VoidCallback? onOpenKeyDemo;
+
+  /// More buttons for the bar, after the others. The lock puts its menu here,
+  /// so this page does not know the lock.
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +52,7 @@ class AccountsPage extends StatelessWidget {
         onScan: onScan,
         onEnterManually: onEnterManually,
         onOpenKeyDemo: onOpenKeyDemo,
+        actions: actions,
       ),
     );
   }
@@ -57,11 +63,13 @@ class _AccountsView extends StatelessWidget {
     required this.onScan,
     required this.onEnterManually,
     required this.onOpenKeyDemo,
+    required this.actions,
   });
 
   final VoidCallback onScan;
   final VoidCallback onEnterManually;
   final VoidCallback? onOpenKeyDemo;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +91,7 @@ class _AccountsView extends StatelessWidget {
                 tooltip: S.of(context).deviceKeyDemo,
                 onPressed: onOpenKeyDemo,
               ),
+            ...actions,
           ],
         ),
         body: const _AccountsBody(),

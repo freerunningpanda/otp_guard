@@ -188,4 +188,145 @@ class SEn extends S {
   String failureInvalidParameter(String name, String value) {
     return 'Invalid value “$value” of the parameter $name.';
   }
+
+  @override
+  String get lockTitle => 'The app is locked';
+
+  @override
+  String get lockLoadFailedTitle => 'Could not read the lock settings';
+
+  @override
+  String get lockLoadFailedBody =>
+      'The app stays locked until they can be read.';
+
+  @override
+  String get lockDamagedTitle => 'The lock record is damaged';
+
+  @override
+  String get lockDamagedBody =>
+      'It cannot be read, and trying again will not help. The only way out is to reset the app, which deletes all the accounts.';
+
+  @override
+  String get resetApp => 'Reset the app';
+
+  @override
+  String get pinLabel => 'PIN';
+
+  @override
+  String get unlock => 'Unlock';
+
+  @override
+  String get unlockWithBiometrics => 'Sign in with fingerprint or face';
+
+  @override
+  String get pinWrong => 'Wrong PIN';
+
+  @override
+  String pinWait(String time) {
+    return 'Too many attempts. Try again in $time';
+  }
+
+  @override
+  String get lockBiometricUnavailable =>
+      'Biometric sign-in is not available now. Enter the PIN.';
+
+  @override
+  String get lockBiometricFailed =>
+      'Could not confirm your identity. Enter the PIN.';
+
+  @override
+  String get lockBiometricRenewalHint =>
+      'The fingerprints or faces on the device changed, so biometric sign-in is off. Enter the PIN; you can turn it on again after signing in.';
+
+  @override
+  String get lockStorageFailed =>
+      'Could not record the sign-in attempt. Try again.';
+
+  @override
+  String get forgotPin => 'Forgot the PIN?';
+
+  @override
+  String get resetTitle => 'Reset the app?';
+
+  @override
+  String get resetBody =>
+      'All accounts and the PIN will be deleted from this device for good. If signing in to a website is protected by these codes, you may lose access: make sure you have backup codes or another way to sign in. After the reset you will create a new PIN.';
+
+  @override
+  String get resetConfirm => 'Erase everything';
+
+  @override
+  String get lockResetFailed => 'Could not erase the data. Try again.';
+
+  @override
+  String get biometricPromptTitle => 'Confirm sign-in';
+
+  @override
+  String get biometricPromptSubtitle => 'The app is locked';
+
+  @override
+  String get pinSetupTitle => 'Create a PIN';
+
+  @override
+  String get pinSetupHint =>
+      'The PIN guards the way into the app. It does not encrypt the secrets and cannot be recovered, so remember it.';
+
+  @override
+  String get pinConfirmLabel => 'Repeat the PIN';
+
+  @override
+  String get pinCreate => 'Create PIN';
+
+  @override
+  String pinLengthError(int min, int max) {
+    return '$min to $max digits';
+  }
+
+  @override
+  String get pinDigitsOnly => 'Digits only';
+
+  @override
+  String get pinMismatch => 'The PINs do not match';
+
+  @override
+  String get pinSaveFailed => 'Could not save the PIN. Try again.';
+
+  @override
+  String get biometricOfferTitle => 'Turn on biometric sign-in?';
+
+  @override
+  String get biometricOfferBody =>
+      'A fingerprint or face instead of the PIN. The PIN stays as the fallback.';
+
+  @override
+  String get biometricRenewTitle => 'The fingerprints changed';
+
+  @override
+  String get biometricRenewBody =>
+      'Biometric sign-in was turned off because the fingerprints or faces on the device changed. Turn it on again?';
+
+  @override
+  String get biometricEnable => 'Turn on';
+
+  @override
+  String get biometricNotNow => 'Not now';
+
+  @override
+  String get biometricUnavailableOnDevice =>
+      'Biometrics are not available on this device: it needs enrolled fingerprints or a face and secure key storage.';
+
+  @override
+  String get biometricEnableFailed => 'Could not turn on biometric sign-in';
+
+  @override
+  String get biometricDisableFailed => 'Could not turn off biometric sign-in';
+
+  @override
+  String get menuLockNow => 'Lock now';
+
+  @override
+  String get menuBiometricsOn => 'Turn on biometric sign-in';
+
+  @override
+  String get menuBiometricsOff => 'Turn off biometric sign-in';
 }

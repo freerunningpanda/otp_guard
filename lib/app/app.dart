@@ -6,6 +6,8 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:otp_guard/core/security/screen_security.dart';
 import 'package:otp_guard/core/time/clock.dart';
+import 'package:otp_guard/features/lock/presentation/lock_cubit.dart';
+import 'package:otp_guard/features/lock/presentation/widgets/lock_lifecycle_observer.dart';
 import 'package:otp_guard/features/otp/presentation/accounts/accounts_cubit.dart';
 import 'package:otp_guard/l10n/s.dart';
 
@@ -29,28 +31,39 @@ class App extends StatelessWidget {
         RepositoryProvider<Clock>.value(value: getIt()),
         RepositoryProvider<ScreenSecurity>.value(value: getIt()),
       ],
-      // Above the router, so the list, the scanner and the form share one
-      // cubit and see the same accounts.
-      child: BlocProvider<AccountsCubit>(
+      // The lock is above everything: the router asks it where to go, and the
+      // observer tells it when the app goes to the background and back.
+      child: BlocProvider<LockCubit>(
         create: (_) {
-          final cubit = getIt<AccountsCubit>();
+          final cubit = getIt<LockCubit>();
           unawaited(cubit.load());
           return cubit;
         },
-        child: MaterialApp.router(
-          onGenerateTitle: (context) => S.of(context).appTitle,
-          localizationsDelegates: S.localizationsDelegates,
-          supportedLocales: S.supportedLocales,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.deepPurple,
-              brightness: Brightness.dark,
+        child: LockLifecycleObserver(
+          // Above the router, so the list, the scanner and the form share one
+          // cubit and see the same accounts.
+          child: BlocProvider<AccountsCubit>(
+            create: (_) {
+              final cubit = getIt<AccountsCubit>();
+              unawaited(cubit.load());
+              return cubit;
+            },
+            child: MaterialApp.router(
+              onGenerateTitle: (context) => S.of(context).appTitle,
+              localizationsDelegates: S.localizationsDelegates,
+              supportedLocales: S.supportedLocales,
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+              ),
+              darkTheme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.deepPurple,
+                  brightness: Brightness.dark,
+                ),
+              ),
+              routerConfig: router,
             ),
           ),
-          routerConfig: router,
         ),
       ),
     );
