@@ -1,5 +1,7 @@
 # OTP Guard
 
+[![CI](https://github.com/freerunningpanda/otp_guard/actions/workflows/ci.yml/badge.svg)](https://github.com/freerunningpanda/otp_guard/actions/workflows/ci.yml)
+
 A corporate authenticator that protects one-time codes from leaking through the screen.
 
 > Work in progress. See the [roadmap](#roadmap) for what is done.
@@ -94,6 +96,32 @@ It is a barrier in the interface, and this is on purpose.
 - **A lock that cannot be read stays shut.** If the storage fails, the app says so and offers to try again, and nothing more: a storage that failed once may work the next time, and a reset would cost the accounts for nothing. A **damaged** record is another case, see above.
 - **A forgotten PIN is not recovered, only reset, and a reset loses the accounts.** There is no recovery by e-mail or by a question, on purpose: anything that could bring the PIN back could be used by someone else. Reinstalling the app does not help on iOS, where the Keychain outlives the app.
 - **The PIN passes through the memory of the app as a `String`**, which cannot be cleared. The text field is emptied as soon as the PIN is sent.
+
+## Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push to `main` and every pull request to it. A newer commit to the same branch cancels the run for the older one.
+
+| Job | Where | What it does |
+|---|---|---|
+| Dart checks | Ubuntu | Checks that the generated code is up to date, `dart format --set-exit-if-changed .`, `flutter analyze` (app and plugin), `flutter test --coverage` (app) and `flutter test` (plugin) |
+| Android | Ubuntu, Java 17 | `flutter build apk --debug`, then the native tests of the plugin (`./gradlew :device_security:testDebugUnitTest`); the build goes first, because it writes the Gradle wrapper, which is not in the repository |
+| iOS | macOS | `flutter build ios --debug --no-codesign`, only if the Dart checks passed, as macOS minutes are the slow ones |
+
+- **The generated files must match their sources.** The Pigeon and localization files are committed, so the job generates them again and fails if anything differs. After changing `pigeons/device_key.dart` or an `.arb` file, generate and commit the result (see the plugin README and [Localization](#localization)).
+- **Flutter is pinned** to the version in `FLUTTER_VERSION` of the workflow, and Pigeon to an exact version in the plugin, so a run cannot fail because a newer tool formats or generates differently. To move to a newer one, change it in one place and commit.
+- **No secrets are needed.** The builds are debug builds without signing.
+
+To run the Dart checks as CI does, on your own machine:
+
+```
+flutter pub get && (cd packages/device_security && flutter pub get)
+flutter gen-l10n
+(cd packages/device_security && dart run pigeon --input pigeons/device_key.dart && dart format lib/src/device_key_api.g.dart)
+git status --short                      # must be empty
+dart format --set-exit-if-changed .
+flutter analyze && (cd packages/device_security && flutter analyze)
+flutter test --coverage && (cd packages/device_security && flutter test)
+```
 
 ## Localization
 

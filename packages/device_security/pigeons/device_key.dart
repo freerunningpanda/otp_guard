@@ -2,7 +2,9 @@ import 'package:pigeon/pigeon.dart';
 
 // The description of the key API. The Dart, Kotlin and Swift code under the
 // paths below is generated from it with
-// `dart run pigeon --input pigeons/device_key.dart`. Do not edit it by hand.
+// `dart run pigeon --input pigeons/device_key.dart`, and then formatted with
+// `dart format lib/src/device_key_api.g.dart`, as Pigeon formats in its own
+// style. Do not edit it by hand.
 //
 // The paths are single string literals on purpose: Pigeon does not read
 // adjacent literals ('a' 'b') in the options.

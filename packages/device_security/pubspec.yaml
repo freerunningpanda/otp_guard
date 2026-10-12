@@ -17,7 +17,11 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-  pigeon: ^29.0.7
+  # Exact, not a range: the version is written in the header of the generated
+  # files, which are committed. A newer one would change them, and the check of
+  # CI that they are up to date would fail with no change in the sources. To
+  # upgrade, change this, generate again and commit the result.
+  pigeon: 29.0.7
   very_good_analysis: ^10.3.0
 
 # For information on the generic Dart part of this file, see the

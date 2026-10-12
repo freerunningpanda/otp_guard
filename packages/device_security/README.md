@@ -42,6 +42,7 @@ The key API is described in [`pigeons/device_key.dart`](pigeons/device_key.dart)
 
 ```
 dart run pigeon --input pigeons/device_key.dart
+dart format lib/src/device_key_api.g.dart
 ```
 
 The generated files are committed, so the project builds without running the generator. Do not edit them by hand: the next generation overwrites the edits. Errors reach Dart as `PlatformException` with the codes above.

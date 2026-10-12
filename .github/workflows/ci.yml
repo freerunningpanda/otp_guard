@@ -1,0 +1,142 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A newer commit to the same branch makes the run for the older one pointless.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# The jobs only read the code. No token with more rights is needed.
+permissions:
+  contents: read
+
+env:
+  # The same Flutter as on the machine that develops the app. A newer one can
+  # format, analyze or build differently, and then the run fails for a reason
+  # that is not in the code.
+  FLUTTER_VERSION: 3.44.9
+
+jobs:
+  checks:
+    name: Dart checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Get the packages of the app
+        run: flutter pub get
+
+      - name: Get the packages of the plugin
+        run: flutter pub get
+        working-directory: packages/device_security
+
+      # The generated files are committed. If someone changes the description of
+      # the key API or a text and forgets to generate again, the files differ
+      # from what the sources give, and this step fails. Files that are not in
+      # the repository yet count as a difference, too. The generated Dart of
+      # Pigeon is formatted, as it is in the repository: Pigeon has a style of
+      # its own, and the format check below wants the style of `dart format`.
+      - name: Generated code is up to date
+        run: |
+          flutter gen-l10n
+          (cd packages/device_security && dart run pigeon --input pigeons/device_key.dart && dart format lib/src/device_key_api.g.dart)
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::The code is out of date with its sources. Run 'flutter gen-l10n' in the root and 'dart run pigeon --input pigeons/device_key.dart' in packages/device_security, and commit the result."
+            git status --short
+            git diff
+            exit 1
+          fi
+
+      - name: Format
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze the app
+        run: flutter analyze
+
+      # The app skips the Pigeon description (it cannot resolve package:pigeon
+      # from the root), so the plugin analyzes it in its own folder.
+      - name: Analyze the plugin
+        run: flutter analyze
+        working-directory: packages/device_security
+
+      - name: Test the app
+        run: flutter test --coverage
+
+      - name: Keep the coverage
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          retention-days: 7
+
+      - name: Test the plugin
+        run: flutter test
+        working-directory: packages/device_security
+
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # Gradle finds the Flutter SDK and the plugins from files that
+      # `flutter pub get` writes.
+      - name: Get the packages
+        run: flutter pub get
+
+      # First, because it makes the Gradle wrapper: `gradlew` and its jar are not
+      # in the repository (the Flutter template ignores them), and the Flutter
+      # tool writes them at the first build.
+      - name: Build the debug APK
+        run: flutter build apk --debug
+
+      - name: Native tests of the plugin
+        run: ./gradlew :device_security:testDebugUnitTest
+        working-directory: android
+
+  ios:
+    name: iOS
+    # macOS minutes are the slow and costly ones. If the checks fail, there is
+    # nothing to build.
+    needs: checks
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Get the packages
+        run: flutter pub get
+
+      - name: Build without signing
+        run: flutter build ios --debug --no-codesign
